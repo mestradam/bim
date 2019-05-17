@@ -5,7 +5,7 @@ import json
 _key = '8wN4p5aXqbVsbK3-O5R9ekbSN-5d2a'
 _url = 'https://elevation-api.io/api/elevation?key=%s&resolution=%s&points=(%f,%f)'
 # _url = 'https://elevation-api.io/api/elevation?resolution=%s&points=(%f,%f)'
-_defaultResolution = '10'
+_defaultResolution = '30'
 
 def queryElevationApi (latitude, longitude, resolution=None, verbose=False):
 
