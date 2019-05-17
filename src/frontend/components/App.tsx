@@ -19,9 +19,14 @@ import "./App.css";
 import { ElementProps, RenderMode } from "@bentley/imodeljs-common";
 import { SampleFeatureOverrideProvider } from "./SampleFeatureOverrideProvider";
 import uniqueRandom from "unique-random";
+import { createSliderWithTooltip, Range } from 'rc-slider';
+import 'rc-slider/assets/index.css';
 
 // tslint:disable: no-console
 // cSpell:ignore imodels
+
+// const createSliderWithTooltip = Slider.createSliderWithTooltip;
+const Rrrrr = createSliderWithTooltip(Range);
 
 /** React state of the App component */
 export interface AppState {
@@ -53,6 +58,9 @@ export default class App extends React.Component<{}, AppState> {
     // subscribe for unified selection changes
     Presentation.selection.selectionChange.addListener(this._onSelectionChanged);
 
+    // todo subscribe to scrubber(s)
+
+
     // Initialize authorization state, and add listener to changes
     SimpleViewerApp.oidcClient.onUserStateChanged.addListener(this._onUserStateChanged);
     if (SimpleViewerApp.oidcClient.isAuthorized) {
@@ -66,6 +74,8 @@ export default class App extends React.Component<{}, AppState> {
   public componentWillUnmount() {
     // unsubscribe from unified selection changes
     Presentation.selection.selectionChange.removeListener(this._onSelectionChanged);
+    // todo unsubscribe from scrubber
+
     // unsubscribe from user state changes
     SimpleViewerApp.oidcClient.onUserStateChanged.removeListener(this._onUserStateChanged);
   }
@@ -326,6 +336,14 @@ class IModelComponents extends React.PureComponent<IModelComponentsProps> {
         </div>
         <div className="bottom">
           <GridWidget imodel={this.props.imodel} rulesetId={rulesetId} />
+        </div>
+        <div className="middle-left">
+          <p>Depth slice:</p>
+          <Rrrrr min={100}
+                 max={3000}
+                 defaultValue={[500,1000]}
+                 // tipFormatter={value:any => `${value}%`}
+          />
         </div>
       </div>
     );

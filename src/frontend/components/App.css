@@ -37,11 +37,18 @@
   width: 70%;
 }
 
+.app-content .middle-left {
+  position: absolute;
+  top: 70%;
+  width: 66%;
+  margin: 0 0 10px 2%;
+}
+
 .app-content .bottom {
   position: absolute;
   bottom: 0;
   left: 0;
-  height: 30%;
+  height: 21%;
   width: 70%;
 }
 
