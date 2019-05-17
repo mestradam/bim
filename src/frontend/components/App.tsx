@@ -310,8 +310,11 @@ class IModelComponents extends React.PureComponent<IModelComponentsProps, IModel
     }
 
     private _loadElements = async (imodel: IModelConnection) => {
-      // load all physical elements in the iModel
-      return await imodel.elements.queryProps({ from: "Bis.PhysicalElement" });
+        // load all physical elements in the iModel
+        return await imodel.elements.queryProps({
+            from: "Bis.PhysicalElement",
+            where: ""
+        });
     };
 
     private _setSolidRender = (vp: Viewport) => {
