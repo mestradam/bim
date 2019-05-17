@@ -10,7 +10,7 @@
   "private": true,
   "scripts": {
     "build": "buildIModelJsModule",
-    "start:webserver": "node ./node_modules/@bentley/imodeljs-webserver/lib/webserver.js --port=3000 --resources=./lib/webresources/",
+    "start:webserver": "node ./node_modules/@bentley/imodeljs-webserver/lib/WebServer.js --port=3000 --resources=./lib/webresources/",
     "start:backend": "node lib/backend/main.js",
     "start:servers": "npm run start:makeconfig && env-cmd ./lib/webresources/config.json run-p \"start:webserver\" \"start:backend\"",
     "start:makeconfig": "strip-json-comments --no-whitespace ./src/common/config.json > ./lib/webresources/config.json",
