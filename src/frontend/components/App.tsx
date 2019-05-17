@@ -293,6 +293,7 @@ interface IModelComponentsState {
 /** Renders a viewport, a tree, a property grid and a table */
 class IModelComponents extends React.PureComponent<IModelComponentsProps, IModelComponentsState> {
     private _vp: Viewport | undefined;
+    private _elements: ElementProps[] | undefined;
 
     constructor(props: IModelComponentsProps, context: any) {
         super(props, context);
@@ -303,17 +304,17 @@ class IModelComponents extends React.PureComponent<IModelComponentsProps, IModel
         IModelApp.viewManager.onViewOpen.addOnce(async (vp: Viewport) => {
             // once view renders, set to solid fill
             this._setSolidRender(vp);
-
             this._vp = vp;
-
+        });
+        this._loadElements(this.props.imodel).then((elements: ElementProps[]) => {
+            this._elements = elements;
         });
     }
 
     private _loadElements = async (imodel: IModelConnection) => {
         // load all physical elements in the iModel
         return await imodel.elements.queryProps({
-            from: "Bis.PhysicalElement",
-            where: ""
+            from: "Bis.PhysicalElement"
         });
     };
 
@@ -331,14 +332,10 @@ class IModelComponents extends React.PureComponent<IModelComponentsProps, IModel
     public render() {
         console.log("Set slice to ", this.state.depthSlice, '. Rerendering... <', new Date(), '>');
 
-        if (this._vp) {
-            this._loadElements(this.props.imodel).then((elements: ElementProps[]) => {
-                // set feature overrides to alter appearance of elements
-                if (this._vp) {
-                    this._vp.featureOverrideProvider = new SampleFeatureOverrideProvider(elements, this.state.depthSlice);
-                    console.log('SampleFeatureOverrideProvider completed. <', new Date(), '>');
-                }
-            });
+        if (this._vp && this._elements) {
+            // set feature overrides to alter appearance of elements
+            this._vp.featureOverrideProvider = new SampleFeatureOverrideProvider(this._elements, this.state.depthSlice);
+            console.log('SampleFeatureOverrideProvider completed. <', new Date(), '>');
         }
 
         // ID of the presentation ruleset used by all of the controls; the ruleset
