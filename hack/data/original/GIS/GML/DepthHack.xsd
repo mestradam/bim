@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns:fme="http://www.safe.com/gml/fme" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:gml="http://www.opengis.net/gml" xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.safe.com/gml/fme" elementFormDefault="qualified">
+<import namespace="http://www.opengis.net/gml" schemaLocation="http://schemas.opengis.net/gml/3.1.1/base/gml.xsd"/>
+<element name="NWGIS.MAIN" type="fme:NWGIS.MAINType" substitutionGroup="gml:_Feature"/>
+<complexType name="NWGIS.MAINType">
+<complexContent>
+<extension base="gml:AbstractFeatureType">
+<sequence>
+<element name="DateLaid" minOccurs="0">
+<simpleType>
+<restriction base="string">
+<maxLength value="200"/>
+</restriction>
+</simpleType></element>
+<element name="Material" minOccurs="0">
+<simpleType>
+<restriction base="string">
+<maxLength value="200"/>
+</restriction>
+</simpleType></element>
+<element name="Diameter" minOccurs="0">
+<simpleType>
+<restriction base="string">
+<maxLength value="200"/>
+</restriction>
+</simpleType></element>
+<element name="NetworkFunction" minOccurs="0">
+<simpleType>
+<restriction base="string">
+<maxLength value="200"/>
+</restriction>
+</simpleType></element>
+<element name="ReviewAge" minOccurs="0">
+<simpleType>
+<restriction base="string">
+<maxLength value="200"/>
+</restriction>
+</simpleType></element>
+<element name="ReviewDiameter" minOccurs="0">
+<simpleType>
+<restriction base="string">
+<maxLength value="200"/>
+</restriction>
+</simpleType></element>
+<element name="ReviewMaterial" minOccurs="0">
+<simpleType>
+<restriction base="string">
+<maxLength value="200"/>
+</restriction>
+</simpleType></element>
+<element name="ID" minOccurs="0">
+<simpleType>
+<restriction base="string">
+<maxLength value="400"/>
+</restriction>
+</simpleType></element>
+<element ref="gml:curveProperty" minOccurs="0"/>
+<element ref="gml:multiCurveProperty" minOccurs="0"/>
+</sequence>
+</extension>
+</complexContent>
+</complexType>
+<element name="NWGIS.SEWER" type="fme:NWGIS.SEWERType" substitutionGroup="gml:_Feature"/>
+<complexType name="NWGIS.SEWERType">
+<complexContent>
+<extension base="gml:AbstractFeatureType">
+<sequence>
+<element name="UpDepth" minOccurs="0">
+<simpleType>
+<restriction base="string">
+<maxLength value="200"/>
+</restriction>
+</simpleType></element>
+<element name="DownDepth" minOccurs="0">
+<simpleType>
+<restriction base="string">
+<maxLength value="200"/>
+</restriction>
+</simpleType></element>
+<element name="DownNode" minOccurs="0">
+<simpleType>
+<restriction base="string">
+<maxLength value="200"/>
+</restriction>
+</simpleType></element>
+<element name="UpNode" minOccurs="0">
+<simpleType>
+<restriction base="string">
+<maxLength value="200"/>
+</restriction>
+</simpleType></element>
+<element name="FlowType" minOccurs="0">
+<simpleType>
+<restriction base="string">
+<maxLength value="200"/>
+</restriction>
+</simpleType></element>
+<element name="Height" minOccurs="0">
+<simpleType>
+<restriction base="string">
+<maxLength value="200"/>
+</restriction>
+</simpleType></element>
+<element name="Width" minOccurs="0">
+<simpleType>
+<restriction base="string">
+<maxLength value="200"/>
+</restriction>
+</simpleType></element>
+<element name="Material" minOccurs="0">
+<simpleType>
+<restriction base="string">
+<maxLength value="200"/>
+</restriction>
+</simpleType></element>
+<element name="ReviewAge" minOccurs="0">
+<simpleType>
+<restriction base="string">
+<maxLength value="200"/>
+</restriction>
+</simpleType></element>
+<element name="ReviewDiam" minOccurs="0">
+<simpleType>
+<restriction base="string">
+<maxLength value="200"/>
+</restriction>
+</simpleType></element>
+<element name="ReviewDepth" minOccurs="0">
+<simpleType>
+<restriction base="string">
+<maxLength value="200"/>
+</restriction>
+</simpleType></element>
+<element name="YearLaidBand" minOccurs="0">
+<simpleType>
+<restriction base="string">
+<maxLength value="200"/>
+</restriction>
+</simpleType></element>
+<element name="SewerUsage" minOccurs="0">
+<simpleType>
+<restriction base="string">
+<maxLength value="200"/>
+</restriction>
+</simpleType></element>
+<element name="InfCovLev" minOccurs="0">
+<simpleType>
+<restriction base="string">
+<maxLength value="200"/>
+</restriction>
+</simpleType></element>
+<element name="ID" minOccurs="0">
+<simpleType>
+<restriction base="string">
+<maxLength value="400"/>
+</restriction>
+</simpleType></element>
+<element ref="gml:curveProperty" minOccurs="0"/>
+<element ref="gml:multiCurveProperty" minOccurs="0"/>
+</sequence>
+</extension>
+</complexContent>
+</complexType>
+<element name="NWGIS.SEWER_NO" type="fme:NWGIS.SEWER_NOType" substitutionGroup="gml:_Feature"/>
+<complexType name="NWGIS.SEWER_NOType">
+<complexContent>
+<extension base="gml:AbstractFeatureType">
+<sequence>
+<element name="ChamberType" minOccurs="0">
+<simpleType>
+<restriction base="string">
+<maxLength value="200"/>
+</restriction>
+</simpleType></element>
+<element name="CoverLevel" minOccurs="0">
+<simpleType>
+<restriction base="string">
+<maxLength value="200"/>
+</restriction>
+</simpleType></element>
+<element name="InvertDepth" minOccurs="0">
+<simpleType>
+<restriction base="string">
+<maxLength value="200"/>
+</restriction>
+</simpleType></element>
+<element name="NodeReference" minOccurs="0">
+<simpleType>
+<restriction base="string">
+<maxLength value="200"/>
+</restriction>
+</simpleType></element>
+<element name="NodeType" minOccurs="0">
+<simpleType>
+<restriction base="string">
+<maxLength value="200"/>
+</restriction>
+</simpleType></element>
+<element name="SewerUsage" minOccurs="0">
+<simpleType>
+<restriction base="string">
+<maxLength value="200"/>
+</restriction>
+</simpleType></element>
+<element name="InfCovLev" minOccurs="0">
+<simpleType>
+<restriction base="string">
+<maxLength value="200"/>
+</restriction>
+</simpleType></element>
+<element name="_band" minOccurs="0" maxOccurs="unbounded">
+<complexType>
+<sequence>
+<element name="value" minOccurs="0">
+<simpleType>
+<restriction base="string">
+<maxLength value="200"/>
+</restriction>
+</simpleType></element>
+<element name="palette" minOccurs="0" maxOccurs="unbounded">
+<complexType>
+<sequence>
+<element name="value" minOccurs="0">
+<simpleType>
+<restriction base="string">
+<maxLength value="200"/>
+</restriction>
+</simpleType></element>
+</sequence>
+</complexType>
+</element>
+</sequence>
+</complexType>
+</element>
+<element ref="gml:pointProperty" minOccurs="0"/>
+<element ref="gml:multiPointProperty" minOccurs="0"/>
+</sequence>
+</extension>
+</complexContent>
+</complexType>
+</schema>

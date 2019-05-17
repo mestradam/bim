@@ -1,9 +1,9 @@
 {
-  "welcome-message": "Welcome to Simple Viewer App",
+  "welcome-message": "NW Pipes 3D iModel",
   "signing-in": "Signing-in",
   "components": {
     "imodel-picker": {
-      "open-imodel": "Open Sample iModel"
+      "open-imodel": "Open iModel"
     },
     "properties": "Properties",
     "table": "Table",
