@@ -3,15 +3,14 @@
 * Licensed under the MIT License. See LICENSE.md in the project root for license terms.
 *--------------------------------------------------------------------------------------------*/
 import * as React from "react";
-import {Id64String, OpenMode} from "@bentley/bentleyjs-core";
+import {Id64String, Id64Set, OpenMode} from "@bentley/bentleyjs-core";
 import {AccessToken, ConnectClient, IModelQuery, Project, Config} from "@bentley/imodeljs-clients";
 import {
     IModelApp,
     IModelConnection,
     FrontendRequestContext,
     AuthorizedFrontendRequestContext,
-    Viewport
-} from "@bentley/imodeljs-frontend";
+    Viewport } from "@bentley/imodeljs-frontend";
 import {Presentation, SelectionChangeEventArgs, ISelectionProvider} from "@bentley/presentation-frontend";
 import {Button, ButtonSize, ButtonType, Spinner, SpinnerSize} from "@bentley/ui-core";
 import {SignIn} from "@bentley/ui-components";
@@ -26,6 +25,8 @@ import {ElementProps, RenderMode} from "@bentley/imodeljs-common";
 import {SampleFeatureOverrideProvider} from "./SampleFeatureOverrideProvider";
 import {createSliderWithTooltip, Range} from 'rc-slider';
 import 'rc-slider/assets/index.css';
+import {CylinderDecorator} from "./CylinderDecorator";
+import {Data} from "./Data";
 
 // tslint:disable: no-console
 // cSpell:ignore imodels
@@ -160,9 +161,10 @@ export default class App extends React.Component<{}, AppState> {
                 await imodel.close();
             }
             this.setState({imodel: undefined, viewDefinitionId: undefined});
+            console.log(e);
             alert(e.message);
         }
-    }
+    };
 
     private get _signInRedirectUri() {
         const split = (Config.App.get("imjs_browser_test_redirect_uri") as string).split("://");
@@ -258,6 +260,7 @@ class OpenIModelButton extends React.PureComponent<OpenIModelButtonProps, OpenIM
                 imodel = await IModelConnection.open(info.projectId, info.imodelId, OpenMode.Readonly);
             }
         } catch (e) {
+            console.log(e);
             alert(e.message);
         }
         await this.onIModelSelected(imodel);
@@ -285,26 +288,30 @@ interface IModelComponentsState {
     depthSlice: number[];
     vp: Viewport | undefined;
     elements: ElementProps[] | undefined;
+    selectedElement: string | undefined;
 }
 
 /** Renders a viewport, a tree, a property grid and a table */
 class IModelComponents extends React.PureComponent<IModelComponentsProps, IModelComponentsState> {
+    private _activeDecorators: CylinderDecorator[];
 
     constructor(props: IModelComponentsProps, context: any) {
         super(props, context);
-        this.state = {depthSlice: [0, 1000], vp: undefined, elements: undefined};
+        this.state = {depthSlice: [0, 1000], vp: undefined, elements: undefined, selectedElement: undefined};
+        this.props.imodel.selectionSet.onChanged.addListener(this._selectionChange.bind(this));
+        this._activeDecorators = [];
     }
 
     public componentDidMount() {
         IModelApp.viewManager.onViewOpen.addOnce(async (vp: Viewport) => {
             // once view renders, set to solid fill
             this._setSolidRender(vp);
-            this.setState(Object.assign(this.state, {vp: vp}));
+            this.setState(Object.assign({}, this.state, {vp: vp}));
         });
         this._loadElements(this.props.imodel).then((elements: ElementProps[]) => {
-            this.setState(Object.assign(this.state, {elements: elements}));
+            this.setState(Object.assign({}, this.state, {elements: elements}));
 
-            /*TODO
+            /*TODO invent depth from CSV
             elements.forEach(element => {
                 if (!(element.upDepth && element.downDepth)) {
                     element.recalculatedDepth = Data.data
@@ -331,75 +338,70 @@ class IModelComponents extends React.PureComponent<IModelComponentsProps, IModel
     };
 
     private _sliderChange = (slice: number[]) => {
-        this.setState(Object.assign(this.state, {depthSlice: slice}));
+        this.setState(Object.assign({}, this.state, {depthSlice: slice}));
     };
 
+    private _selectionChange(_imodel: IModelConnection, _eventType: any, elements?: Id64Set) {
+        console.log('_selectionChange ', elements);
+        this.setState(Object.assign({}, this.state, {
+            selectedElement: elements && elements.size > 0 ? elements.entries().next() : undefined
+        }));
+    }
+
     public render() {
+        // ID of the presentation ruleset used by all of the controls; the ruleset
+        // can be found at `assets/presentation_rules/Default.PresentationRuleSet.xml`
+        const rulesetId = "Default";
+
         if (this.state.vp && this.state.elements) {
             // set feature overrides to alter appearance of elements
             this.state.vp.featureOverrideProvider = new SampleFeatureOverrideProvider(this.state.elements, this.state.depthSlice);
 
-            // ID of the presentation ruleset used by all of the controls; the ruleset
-            // can be found at `assets/presentation_rules/Default.PresentationRuleSet.xml`
-            const rulesetId = "Default";
-            return (
-                <div className="app-content">
-                    <div className="top-left">
-                        <ViewportContentControl imodel={this.props.imodel} rulesetId={rulesetId}
-                                                viewDefinitionId={this.props.viewDefinitionId}/>
-                    </div>
-                    <div className="right">
-                        <div className="top">
-                            <TreeWidget imodel={this.props.imodel} rulesetId={rulesetId}/>
-                        </div>
-                        <div className="bottom">
-                            <PropertiesWidget imodel={this.props.imodel} rulesetId={rulesetId}/>
-                        </div>
-                    </div>
-                    <div className="bottom">
-                        <GridWidget imodel={this.props.imodel} rulesetId={rulesetId}/>
-                    </div>
-                    <div className="middle-left">
-                        <p>Depth slice:</p>
-                        <RangeOfTwo min={100}
-                                    max={3000}
-                                    defaultValue={[500, 1000]}
-                                    onChange={this._sliderChange}
-                        />
-                    </div>
-                </div>
-            );
+            // Drop active decorators if exist
+            this._activeDecorators.forEach(decorator => IModelApp.viewManager.dropDecorator(decorator));
+            // Create new decorators if something is selected
+            if (this.state.selectedElement) {
 
-        } else {
-            // ID of the presentation ruleset used by all of the controls; the ruleset
-            // can be found at `assets/presentation_rules/Default.PresentationRuleSet.xml`
-            const rulesetId = "Default";
-            return (
-                <div className="app-content">
-                    <div className="top-left">
-                        <p>Loading...</p>
-                    </div>
-                    <div className="right">
-                        <div className="top">
-                            <TreeWidget imodel={this.props.imodel} rulesetId={rulesetId}/>
-                        </div>
-                        <div className="bottom">
-                            <PropertiesWidget imodel={this.props.imodel} rulesetId={rulesetId}/>
-                        </div>
+                console.log('this.state.selectedElement ', this.state.selectedElement);
+
+                // let elemProps = await this.props.imodel.elements.getProps(this.state.selectedElement).;
+                let elemProps = [{id: "000"}]
+
+                this._activeDecorators = Data.data
+                    .filter(datum => datum.ID === elemProps[0].id)
+                    .map(datum => new CylinderDecorator(datum.X, datum.Y, datum.depth))
+            } else {
+                this._activeDecorators = [];
+            }
+        }
+
+        return (
+            <div className="app-content">
+                <div className="top-left" style={{visibility: this.state.vp && this.state.elements ? "inherit" : "hidden"}}>
+                    <ViewportContentControl imodel={this.props.imodel} rulesetId={rulesetId}
+                                            viewDefinitionId={this.props.viewDefinitionId}/>
+                </div>
+                <div className="right">
+                    <div className="top">
+                        <TreeWidget imodel={this.props.imodel} rulesetId={rulesetId}/>
                     </div>
                     <div className="bottom">
-                        <GridWidget imodel={this.props.imodel} rulesetId={rulesetId}/>
-                    </div>
-                    <div className="middle-left">
-                        <p>Depth slice:</p>
-                        <RangeOfTwo min={100}
-                                    max={3000}
-                                    defaultValue={[500, 1000]}
-                                    onChange={this._sliderChange}
-                        />
+                        <PropertiesWidget imodel={this.props.imodel} rulesetId={rulesetId}/>
                     </div>
                 </div>
-            );
-        }
+                <div className="bottom">
+                    <GridWidget imodel={this.props.imodel} rulesetId={rulesetId}/>
+                </div>
+                <div className="middle-left">
+                    <p>Depth slice:</p>
+                    <RangeOfTwo min={100}
+                                max={3000}
+                                defaultValue={[500, 1000]}
+                                onChange={this._sliderChange}
+                    />
+                </div>
+            </div>
+        );
+
     }
 }
