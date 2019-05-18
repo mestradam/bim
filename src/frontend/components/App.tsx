@@ -63,9 +63,6 @@ export default class App extends React.Component<{}, AppState> {
         // subscribe for unified selection changes
         Presentation.selection.selectionChange.addListener(this._onSelectionChanged);
 
-        // todo subscribe to scrubber(s)
-
-
         // Initialize authorization state, and add listener to changes
         SimpleViewerApp.oidcClient.onUserStateChanged.addListener(this._onUserStateChanged);
         if (SimpleViewerApp.oidcClient.isAuthorized) {
@@ -79,8 +76,6 @@ export default class App extends React.Component<{}, AppState> {
     public componentWillUnmount() {
         // unsubscribe from unified selection changes
         Presentation.selection.selectionChange.removeListener(this._onSelectionChanged);
-        // todo unsubscribe from scrubber
-
         // unsubscribe from user state changes
         SimpleViewerApp.oidcClient.onUserStateChanged.removeListener(this._onUserStateChanged);
     }
@@ -308,6 +303,15 @@ class IModelComponents extends React.PureComponent<IModelComponentsProps, IModel
         });
         this._loadElements(this.props.imodel).then((elements: ElementProps[]) => {
             this._elements = elements;
+            /*TODO
+            elements.forEach(element => {
+                if (!(element.upDepth && element.downDepth)) {
+                    element.recalculatedDepth = Data.data
+                        .filter(datum => datum.ID === element.ID)
+                        .map(datum => datum.depth)
+                        .reduce()
+                }
+            });*/
         });
     }
 
