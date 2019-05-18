@@ -330,12 +330,9 @@ class IModelComponents extends React.PureComponent<IModelComponentsProps, IModel
     };
 
     public render() {
-        console.log("Set slice to ", this.state.depthSlice, '. Rerendering... <', new Date(), '>');
-
         if (this._vp && this._elements) {
             // set feature overrides to alter appearance of elements
             this._vp.featureOverrideProvider = new SampleFeatureOverrideProvider(this._elements, this.state.depthSlice);
-            console.log('SampleFeatureOverrideProvider completed. <', new Date(), '>');
         }
 
         // ID of the presentation ruleset used by all of the controls; the ruleset
@@ -361,10 +358,9 @@ class IModelComponents extends React.PureComponent<IModelComponentsProps, IModel
                 <div className="middle-left">
                     <p>Depth slice:</p>
                     <RangeOfTwo min={100}
-                           max={3000}
-                           defaultValue={[500, 1000]}
-                           onAfterChange={this._sliderChange}
-                        // tipFormatter={value:any => `${value}%`}
+                       max={3000}
+                       defaultValue={[500, 1000]}
+                       onChange={this._sliderChange}
                     />
                 </div>
             </div>
