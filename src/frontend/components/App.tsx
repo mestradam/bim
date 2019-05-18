@@ -343,9 +343,34 @@ class IModelComponents extends React.PureComponent<IModelComponentsProps, IModel
 
     private _selectionChange(_imodel: IModelConnection, _eventType: any, elements?: Id64Set) {
         console.log('_selectionChange ', elements);
-        this.setState(Object.assign({}, this.state, {
-            selectedElement: elements && elements.size > 0 ? elements.entries().next() : undefined
+
+        if(elements) this.manyQuery(_imodel, elements);
+
+        let nextElement = elements && elements.entries().next();
+        if (nextElement) {
+            _imodel.elements.getProps(nextElement.value[0]).then((ep: ElementProps[]) => {
+                console.log("Retrieve ElementProps ", ep);
+                this.setState(Object.assign({}, this.state, {
+                    selectedElement: ep[0].bentley_ID_
+                }));
+            });
+        } else {
+            this.setState(Object.assign({}, this.state, {
+                selectedElement: undefined
+            }));
+        }
+    }
+
+    private async manyQuery(_imodel: IModelConnection, elements: Set<string>) {
+        let u: string[] = [];
+        elements.forEach(nextElement => _imodel.elements.getProps(nextElement).then((ep: ElementProps[]) => {
+            u.push(ep[0].bentley_ID_);
         }));
+
+        setTimeout(() =>
+            console.log(u),
+            5000);
+
     }
 
     public render() {
@@ -364,11 +389,8 @@ class IModelComponents extends React.PureComponent<IModelComponentsProps, IModel
 
                 console.log('this.state.selectedElement ', this.state.selectedElement);
 
-                // let elemProps = await this.props.imodel.elements.getProps(this.state.selectedElement).;
-                let elemProps = [{id: "000"}]
-
                 this._activeDecorators = Data.data
-                    .filter(datum => datum.ID === elemProps[0].id)
+                    .filter(datum => datum.ID === this.state.selectedElement)
                     .map(datum => new CylinderDecorator(datum.X, datum.Y, datum.depth))
             } else {
                 this._activeDecorators = [];
