@@ -1,11 +1,12 @@
 import {DecorateContext, GraphicType, Decorator} from "@bentley/imodeljs-frontend";
-import {ColorDef} from "@bentley/imodeljs-common";
+import {ColorDef, GraphicParams} from "@bentley/imodeljs-common";
 import {Point3d} from "@bentley/geometry-core";
 
 export class BarDecorator implements Decorator {
     private readonly _x: number;
     private readonly _y: number;
     private readonly _z: number;
+    // private _p: Point3d[];
 
     // private _positions: number[][];
 
@@ -13,7 +14,12 @@ export class BarDecorator implements Decorator {
         this._x = x;
         this._y = y;
         this._z = z;
+        // console.log('Create pointString')
     }
+
+    // public constructor(p: any[]) {
+    //     this._p=p.map(element => new Point3d(element.X, element.Y, element.depth))
+    // }
 
     // public constructor(positions: number[][]) {
     //   this._positions = positions;
@@ -29,8 +35,16 @@ export class BarDecorator implements Decorator {
 
         let red = (this._z-0.5) * 255 / 2.5;
         let color = ColorDef.from(red, 255 - red, 0);
-        builder.setSymbology(color, color, 2);
-        builder.addPointString([new Point3d(this._x,this._y,this._z)]);
+        // builder.setSymbology(color, color, 12);
+
+        let params = new GraphicParams();
+        params.rasterWidth=12;
+        params.setLineColor(color);
+        builder.activateGraphicParams(params);
+
+        builder.addShape([new Point3d(this._x,this._y,this._z)]);
+
+        // builder.addPointString(this._p);
 
        /* this._positions.forEach((position) => {
 
