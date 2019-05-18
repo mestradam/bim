@@ -23,8 +23,8 @@ import "@bentley/icons-generic-webfont/dist/bentley-icons-generic-webfont.css";
 import "./App.css";
 import {ElementProps, RenderMode} from "@bentley/imodeljs-common";
 import {SampleFeatureOverrideProvider} from "./SampleFeatureOverrideProvider";
-import {createSliderWithTooltip, Range} from 'rc-slider';
-import 'rc-slider/assets/index.css';
+import {createSliderWithTooltip, Range} from "rc-slider";
+import "rc-slider/assets/index.css";
 import {CylinderDecorator} from "./CylinderDecorator";
 import {Data} from "./Data";
 
@@ -164,7 +164,7 @@ export default class App extends React.Component<{}, AppState> {
             console.log(e);
             alert(e.message);
         }
-    };
+    }
 
     private get _signInRedirectUri() {
         const split = (Config.App.get("imjs_browser_test_redirect_uri") as string).split("://");
@@ -306,10 +306,10 @@ class IModelComponents extends React.PureComponent<IModelComponentsProps, IModel
         IModelApp.viewManager.onViewOpen.addOnce(async (vp: Viewport) => {
             // once view renders, set to solid fill
             this._setSolidRender(vp);
-            this.setState(Object.assign({}, this.state, {vp: vp}));
+            this.setState(Object.assign({}, this.state, {vp}));
         });
         this._loadElements(this.props.imodel).then((elements: ElementProps[]) => {
-            this.setState(Object.assign({}, this.state, {elements: elements}));
+            this.setState(Object.assign({}, this.state, {elements}));
 
             /*TODO invent depth from CSV
             elements.forEach(element => {
@@ -325,26 +325,26 @@ class IModelComponents extends React.PureComponent<IModelComponentsProps, IModel
 
     private _loadElements = async (imodel: IModelConnection) => {
         // load all physical elements in the iModel
-        return await imodel.elements.queryProps({
-            from: "Bis.PhysicalElement"
+        return imodel.elements.queryProps({
+            from: "Bis.PhysicalElement",
         });
-    };
+    }
 
     private _setSolidRender = (vp: Viewport) => {
         vp.viewFlags.renderMode = RenderMode.SolidFill;
         vp.sync.invalidateController();
         vp.target.reset();
         vp.synchWithView(false);
-    };
+    }
 
     private _sliderChange = (slice: number[]) => {
         this.setState(Object.assign({}, this.state, {depthSlice: slice}));
-    };
+    }
 
     private _selectionChange(_imodel: IModelConnection, _eventType: any, elements?: Id64Set) {
-        console.log('_selectionChange ', elements);
+        console.log("_selectionChange ", elements);
         this.setState(Object.assign({}, this.state, {
-            selectedElement: elements && elements.size > 0 ? elements.entries().next() : undefined
+            selectedElement: elements && elements.size > 0 ? elements.entries().next() : undefined,
         }));
     }
 
@@ -358,18 +358,18 @@ class IModelComponents extends React.PureComponent<IModelComponentsProps, IModel
             this.state.vp.featureOverrideProvider = new SampleFeatureOverrideProvider(this.state.elements, this.state.depthSlice);
 
             // Drop active decorators if exist
-            this._activeDecorators.forEach(decorator => IModelApp.viewManager.dropDecorator(decorator));
+            this._activeDecorators.forEach((decorator) => IModelApp.viewManager.dropDecorator(decorator));
             // Create new decorators if something is selected
             if (this.state.selectedElement) {
 
-                console.log('this.state.selectedElement ', this.state.selectedElement);
+                console.log("this.state.selectedElement ", this.state.selectedElement);
 
                 // let elemProps = await this.props.imodel.elements.getProps(this.state.selectedElement).;
-                let elemProps = [{id: "000"}]
+                const elemProps = [{id: "000"}];
 
                 this._activeDecorators = Data.data
-                    .filter(datum => datum.ID === elemProps[0].id)
-                    .map(datum => new CylinderDecorator(datum.X, datum.Y, datum.depth))
+                    .filter((datum) => datum.ID === elemProps[0].id)
+                    .map((datum) => new CylinderDecorator(datum.X, datum.Y, datum.depth));
             } else {
                 this._activeDecorators = [];
             }
@@ -394,9 +394,9 @@ class IModelComponents extends React.PureComponent<IModelComponentsProps, IModel
                 </div>
                 <div className="middle-left">
                     <p>Depth slice:</p>
-                    <RangeOfTwo min={100}
-                                max={3000}
-                                defaultValue={[500, 1000]}
+                    <RangeOfTwo min={0}
+                                max={8000}
+                                defaultValue={[0, 1000]}
                                 onChange={this._sliderChange}
                     />
                 </div>
