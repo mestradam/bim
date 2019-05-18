@@ -63,9 +63,6 @@ export default class App extends React.Component<{}, AppState> {
         // subscribe for unified selection changes
         Presentation.selection.selectionChange.addListener(this._onSelectionChanged);
 
-        // todo subscribe to scrubber(s)
-
-
         // Initialize authorization state, and add listener to changes
         SimpleViewerApp.oidcClient.onUserStateChanged.addListener(this._onUserStateChanged);
         if (SimpleViewerApp.oidcClient.isAuthorized) {
@@ -79,8 +76,6 @@ export default class App extends React.Component<{}, AppState> {
     public componentWillUnmount() {
         // unsubscribe from unified selection changes
         Presentation.selection.selectionChange.removeListener(this._onSelectionChanged);
-        // todo unsubscribe from scrubber
-
         // unsubscribe from user state changes
         SimpleViewerApp.oidcClient.onUserStateChanged.removeListener(this._onUserStateChanged);
     }
@@ -288,26 +283,36 @@ interface IModelComponentsProps {
 
 interface IModelComponentsState {
     depthSlice: number[];
+    vp: Viewport | undefined;
+    elements: ElementProps[] | undefined;
 }
 
 /** Renders a viewport, a tree, a property grid and a table */
 class IModelComponents extends React.PureComponent<IModelComponentsProps, IModelComponentsState> {
-    private _vp: Viewport | undefined;
-    private _elements: ElementProps[] | undefined;
 
     constructor(props: IModelComponentsProps, context: any) {
         super(props, context);
-        this.state = {depthSlice: [0, 1000]};
+        this.state = {depthSlice: [0, 1000], vp: undefined, elements: undefined};
     }
 
     public componentDidMount() {
         IModelApp.viewManager.onViewOpen.addOnce(async (vp: Viewport) => {
             // once view renders, set to solid fill
             this._setSolidRender(vp);
-            this._vp = vp;
+            this.setState(Object.assign(this.state, {vp: vp}));
         });
         this._loadElements(this.props.imodel).then((elements: ElementProps[]) => {
-            this._elements = elements;
+            this.setState(Object.assign(this.state, {elements: elements}));
+
+            /*TODO
+            elements.forEach(element => {
+                if (!(element.upDepth && element.downDepth)) {
+                    element.recalculatedDepth = Data.data
+                        .filter(datum => datum.ID === element.ID)
+                        .map(datum => datum.depth)
+                        .reduce()
+                }
+            });*/
         });
     }
 
@@ -326,44 +331,75 @@ class IModelComponents extends React.PureComponent<IModelComponentsProps, IModel
     };
 
     private _sliderChange = (slice: number[]) => {
-        this.setState({depthSlice: slice});
+        this.setState(Object.assign(this.state, {depthSlice: slice}));
     };
 
     public render() {
-        if (this._vp && this._elements) {
+        if (this.state.vp && this.state.elements) {
             // set feature overrides to alter appearance of elements
-            this._vp.featureOverrideProvider = new SampleFeatureOverrideProvider(this._elements, this.state.depthSlice);
-        }
+            this.state.vp.featureOverrideProvider = new SampleFeatureOverrideProvider(this.state.elements, this.state.depthSlice);
 
-        // ID of the presentation ruleset used by all of the controls; the ruleset
-        // can be found at `assets/presentation_rules/Default.PresentationRuleSet.xml`
-        const rulesetId = "Default";
-        return (
-            <div className="app-content">
-                <div className="top-left">
-                    <ViewportContentControl imodel={this.props.imodel} rulesetId={rulesetId}
-                                            viewDefinitionId={this.props.viewDefinitionId}/>
-                </div>
-                <div className="right">
-                    <div className="top">
-                        <TreeWidget imodel={this.props.imodel} rulesetId={rulesetId}/>
+            // ID of the presentation ruleset used by all of the controls; the ruleset
+            // can be found at `assets/presentation_rules/Default.PresentationRuleSet.xml`
+            const rulesetId = "Default";
+            return (
+                <div className="app-content">
+                    <div className="top-left">
+                        <ViewportContentControl imodel={this.props.imodel} rulesetId={rulesetId}
+                                                viewDefinitionId={this.props.viewDefinitionId}/>
+                    </div>
+                    <div className="right">
+                        <div className="top">
+                            <TreeWidget imodel={this.props.imodel} rulesetId={rulesetId}/>
+                        </div>
+                        <div className="bottom">
+                            <PropertiesWidget imodel={this.props.imodel} rulesetId={rulesetId}/>
+                        </div>
                     </div>
                     <div className="bottom">
-                        <PropertiesWidget imodel={this.props.imodel} rulesetId={rulesetId}/>
+                        <GridWidget imodel={this.props.imodel} rulesetId={rulesetId}/>
+                    </div>
+                    <div className="middle-left">
+                        <p>Depth slice:</p>
+                        <RangeOfTwo min={100}
+                                    max={3000}
+                                    defaultValue={[500, 1000]}
+                                    onChange={this._sliderChange}
+                        />
                     </div>
                 </div>
-                <div className="bottom">
-                    <GridWidget imodel={this.props.imodel} rulesetId={rulesetId}/>
+            );
+
+        } else {
+            // ID of the presentation ruleset used by all of the controls; the ruleset
+            // can be found at `assets/presentation_rules/Default.PresentationRuleSet.xml`
+            const rulesetId = "Default";
+            return (
+                <div className="app-content">
+                    <div className="top-left">
+                        <p>Loading...</p>
+                    </div>
+                    <div className="right">
+                        <div className="top">
+                            <TreeWidget imodel={this.props.imodel} rulesetId={rulesetId}/>
+                        </div>
+                        <div className="bottom">
+                            <PropertiesWidget imodel={this.props.imodel} rulesetId={rulesetId}/>
+                        </div>
+                    </div>
+                    <div className="bottom">
+                        <GridWidget imodel={this.props.imodel} rulesetId={rulesetId}/>
+                    </div>
+                    <div className="middle-left">
+                        <p>Depth slice:</p>
+                        <RangeOfTwo min={100}
+                                    max={3000}
+                                    defaultValue={[500, 1000]}
+                                    onChange={this._sliderChange}
+                        />
+                    </div>
                 </div>
-                <div className="middle-left">
-                    <p>Depth slice:</p>
-                    <RangeOfTwo min={100}
-                       max={3000}
-                       defaultValue={[500, 1000]}
-                       onChange={this._sliderChange}
-                    />
-                </div>
-            </div>
-        );
+            );
+        }
     }
 }
