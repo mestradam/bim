@@ -277,6 +277,10 @@ class IModelComponents extends React.PureComponent<IModelComponentsProps> {
       });
     }
 
+    private _createDecorators = () => {
+
+    }
+
     private _loadPoints = async (imodel: IModelConnection) => {
       const elements = await this._loadElements(imodel);
       const geometricElements = elements as GeometricElement3dProps[];
