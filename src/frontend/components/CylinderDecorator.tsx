@@ -34,16 +34,16 @@ export class CylinderDecorator implements Decorator {
 
         const builder = context.createGraphicBuilder(GraphicType.WorldDecoration, undefined);
 
-        let red = (this._z-0.5) * 255 / 2.5;
+        let red = 255; //(this._z-0.5) * 255 / 2.5;
         let color = ColorDef.from(red, 255 - red, 0);
-        // builder.setSymbology(color, color, 12);
+        builder.setSymbology(color, color, 12);
 
         let params = new GraphicParams();
-        params.rasterWidth=10;
+        params.rasterWidth=12;
         params.setLineColor(color);
         builder.activateGraphicParams(params);
 
-        builder.addShape([new Point3d(this._x,this._y,this._z), new Point3d(this._x,this._y, 0)]);
+        builder.addPointString([new Point3d(this._x,this._y,this._z), new Point3d(this._x,this._y, 0)]);
 
         // builder.addPointString(this._p);
 

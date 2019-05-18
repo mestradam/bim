@@ -10,7 +10,8 @@ import {
     IModelConnection,
     FrontendRequestContext,
     AuthorizedFrontendRequestContext,
-    Viewport } from "@bentley/imodeljs-frontend";
+    Viewport
+} from "@bentley/imodeljs-frontend";
 import {Presentation, SelectionChangeEventArgs, ISelectionProvider} from "@bentley/presentation-frontend";
 import {Button, ButtonSize, ButtonType, Spinner, SpinnerSize} from "@bentley/ui-core";
 import {SignIn} from "@bentley/ui-components";
@@ -344,7 +345,7 @@ class IModelComponents extends React.PureComponent<IModelComponentsProps, IModel
     private _selectionChange(_imodel: IModelConnection, _eventType: any, elements?: Id64Set) {
         console.log('_selectionChange ', elements);
 
-        if(elements) this.manyQuery(_imodel, elements);
+        if (elements) this.manyQuery(_imodel, elements);
 
         let nextElement = elements && elements.entries().next();
         if (nextElement) {
@@ -368,7 +369,7 @@ class IModelComponents extends React.PureComponent<IModelComponentsProps, IModel
         }));
 
         setTimeout(() =>
-            console.log(u),
+                console.log(u),
             5000);
 
     }
@@ -391,7 +392,8 @@ class IModelComponents extends React.PureComponent<IModelComponentsProps, IModel
 
                 this._activeDecorators = Data.data
                     .filter(datum => datum.ID === this.state.selectedElement)
-                    .map(datum => new CylinderDecorator(datum.X, datum.Y, datum.depth))
+                    .map(datum => new CylinderDecorator(datum.X, datum.Y, datum.depth));
+                this._activeDecorators.forEach(dec => IModelApp.viewManager.addDecorator(dec));
             } else {
                 this._activeDecorators = [];
             }
@@ -399,7 +401,8 @@ class IModelComponents extends React.PureComponent<IModelComponentsProps, IModel
 
         return (
             <div className="app-content">
-                <div className="top-left" style={{visibility: this.state.vp && this.state.elements ? "inherit" : "hidden"}}>
+                <div className="top-left"
+                     style={{visibility: this.state.vp && this.state.elements ? "inherit" : "hidden"}}>
                     <ViewportContentControl imodel={this.props.imodel} rulesetId={rulesetId}
                                             viewDefinitionId={this.props.viewDefinitionId}/>
                 </div>
