@@ -24,8 +24,8 @@ import "@bentley/icons-generic-webfont/dist/bentley-icons-generic-webfont.css";
 import "./App.css";
 import {ElementProps, RenderMode} from "@bentley/imodeljs-common";
 import {SampleFeatureOverrideProvider} from "./SampleFeatureOverrideProvider";
-import {createSliderWithTooltip, Range} from 'rc-slider';
-import 'rc-slider/assets/index.css';
+import {createSliderWithTooltip, Range} from "rc-slider";
+import "rc-slider/assets/index.css";
 import {CylinderDecorator} from "./CylinderDecorator";
 import {Data} from "./Data";
 
@@ -165,7 +165,7 @@ export default class App extends React.Component<{}, AppState> {
             console.log(e);
             alert(e.message);
         }
-    };
+    }
 
     private get _signInRedirectUri() {
         const split = (Config.App.get("imjs_browser_test_redirect_uri") as string).split("://");
@@ -345,7 +345,8 @@ class IModelComponents extends React.PureComponent<IModelComponentsProps, IModel
     private _selectionChange(_imodel: IModelConnection, _eventType: any, elements?: Id64Set) {
         console.log('_selectionChange ', elements);
 
-        if (elements) this.manyQuery(_imodel, elements);
+        // Used as a one-off to retrieve big array of IDs
+        // if (elements) this.manyQuery(_imodel, elements);
 
         let nextElement = elements && elements.entries().next();
         if (nextElement) {
@@ -357,12 +358,13 @@ class IModelComponents extends React.PureComponent<IModelComponentsProps, IModel
             });
         } else {
             this.setState(Object.assign({}, this.state, {
-                selectedElement: undefined
+                selectedElement: undefined,
             }));
         }
     }
 
-    private async manyQuery(_imodel: IModelConnection, elements: Set<string>) {
+    // Used as a one-off to retrieve big array of IDs
+    /*private async manyQuery(_imodel: IModelConnection, elements: Set<string>) {
         let u: string[] = [];
         elements.forEach(nextElement => _imodel.elements.getProps(nextElement).then((ep: ElementProps[]) => {
             u.push(ep[0].bentley_ID_);
@@ -372,7 +374,7 @@ class IModelComponents extends React.PureComponent<IModelComponentsProps, IModel
                 console.log(u),
             5000);
 
-    }
+    }*/
 
     public render() {
         // ID of the presentation ruleset used by all of the controls; the ruleset
@@ -388,7 +390,7 @@ class IModelComponents extends React.PureComponent<IModelComponentsProps, IModel
             // Create new decorators if something is selected
             if (this.state.selectedElement) {
 
-                console.log('this.state.selectedElement ', this.state.selectedElement);
+                console.log("this.state.selectedElement ", this.state.selectedElement);
 
                 this._activeDecorators = Data.data
                     .filter(datum => datum.ID === this.state.selectedElement)
@@ -419,9 +421,9 @@ class IModelComponents extends React.PureComponent<IModelComponentsProps, IModel
                 </div>
                 <div className="middle-left">
                     <p>Depth slice:</p>
-                    <RangeOfTwo min={100}
-                                max={3000}
-                                defaultValue={[500, 1000]}
+                    <RangeOfTwo min={0}
+                                max={8000}
+                                defaultValue={[0, 1000]}
                                 onChange={this._sliderChange}
                     />
                 </div>
