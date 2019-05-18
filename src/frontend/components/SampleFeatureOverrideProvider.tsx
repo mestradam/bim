@@ -24,7 +24,6 @@ export class SampleFeatureOverrideProvider implements FeatureOverrideProvider {
         // set default appearance for all elements
         _overrides.setDefaultOverrides(defaultAppearance);
         // set appearance of elements passed in
-        if (this._elements) this._elements.forEach((element: ElementProps) => {
             if (this._elements) this._elements.forEach((element: ElementProps) => {
                 if (element.id) {
                     if (element.geometry_Length < this._depthSlice[0] || element.geometry_Length > this._depthSlice[1]) {
@@ -36,6 +35,5 @@ export class SampleFeatureOverrideProvider implements FeatureOverrideProvider {
                     }
                 }
             });
-        });
     }
 }
