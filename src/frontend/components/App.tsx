@@ -371,8 +371,34 @@ class IModelComponents extends React.PureComponent<IModelComponentsProps, IModel
             );
 
         } else {
+            // ID of the presentation ruleset used by all of the controls; the ruleset
+            // can be found at `assets/presentation_rules/Default.PresentationRuleSet.xml`
+            const rulesetId = "Default";
             return (
-                <p>Loading...</p>
+                <div className="app-content">
+                    <div className="top-left">
+                        <p>Loading...</p>
+                    </div>
+                    <div className="right">
+                        <div className="top">
+                            <TreeWidget imodel={this.props.imodel} rulesetId={rulesetId}/>
+                        </div>
+                        <div className="bottom">
+                            <PropertiesWidget imodel={this.props.imodel} rulesetId={rulesetId}/>
+                        </div>
+                    </div>
+                    <div className="bottom">
+                        <GridWidget imodel={this.props.imodel} rulesetId={rulesetId}/>
+                    </div>
+                    <div className="middle-left">
+                        <p>Depth slice:</p>
+                        <RangeOfTwo min={100}
+                                    max={3000}
+                                    defaultValue={[500, 1000]}
+                                    onChange={this._sliderChange}
+                        />
+                    </div>
+                </div>
             );
         }
     }
