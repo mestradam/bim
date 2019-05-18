@@ -6,25 +6,17 @@ export class CylinderDecorator implements Decorator {
     private readonly _x: number;
     private readonly _y: number;
     private readonly _z: number;
-    // private _p: Point3d[];
+    private readonly _min: number;
+    private readonly _max: number;
 
-    // private _positions: number[][];
-
-    public constructor(x: number, y: number, depth: number|null) {
+    public constructor(x: number, y: number, depth: number|null, min:number, max:number) {
         console.log("Create CylinderDecorator: ", arguments)
         this._x = x;
         this._y = y;
         this._z = depth ? -depth : 0;
-        // console.log('Create pointString')
+        this._min = min;
+        this._max = max;
     }
-
-    // public constructor(p: any[]) {
-    //     this._p=p.map(element => new Point3d(element.X, element.Y, element.depth))
-    // }
-
-    // public constructor(positions: number[][]) {
-    //   this._positions = positions;
-    // }
 
     public decorate(context: DecorateContext): void {
         // Check view type, project extents is only applicable to show in spatial views.
@@ -34,25 +26,16 @@ export class CylinderDecorator implements Decorator {
 
         const builder = context.createGraphicBuilder(GraphicType.WorldDecoration, undefined);
 
-        let red = 255; //(this._z-0.5) * 255 / 2.5;
-        let color = ColorDef.from(red, 255 - red, 0);
-        builder.setSymbology(color, color, 12);
+        let color = ColorDef.from(255, 128 * (this._min + this._z) / (this._min - this._max), 0);
+        builder.setSymbology(color, color, 10);
 
         let params = new GraphicParams();
-        params.rasterWidth=12;
+        params.rasterWidth=10;
         params.setLineColor(color);
         builder.activateGraphicParams(params);
 
-        builder.addPointString([new Point3d(this._x,this._y,this._z), new Point3d(this._x,this._y, 0)]);
+        builder.addLineString([new Point3d(this._x,this._y,this._z * 10), new Point3d(this._x,this._y, 0)]);
 
-        // builder.addPointString(this._p);
-
-       /* this._positions.forEach((position) => {
-
-            builder.setSymbology(ColorDef.from(255, 0, 0), ColorDef.blue, 2);
-            const aBox = new Range3d(position[0] - 5, position[1] - 5, 0, position[0] + 5, position[1] + 5, 100);
-            builder.addRangeBox(aBox);
-        });*/
         context.addDecorationFromBuilder(builder);
     }
 }

@@ -392,10 +392,15 @@ class IModelComponents extends React.PureComponent<IModelComponentsProps, IModel
 
                 console.log("this.state.selectedElement ", this.state.selectedElement);
 
-                this._activeDecorators = Data.data
-                    .filter(datum => datum.ID === this.state.selectedElement)
-                    .map(datum => new CylinderDecorator(datum.X, datum.Y, datum.depth));
+                const filteredData = Data.data
+                    .filter(datum => datum.ID === this.state.selectedElement);
+                const min:number = Math.min(...filteredData.map(datum => datum.depth));
+                const max:number = Math.max(...filteredData.map(datum => datum.depth));
+
+                this._activeDecorators = filteredData
+                    .map(datum => new CylinderDecorator(datum.X, datum.Y, datum.depth, min, max));
                 this._activeDecorators.forEach(dec => IModelApp.viewManager.addDecorator(dec));
+
             } else {
                 this._activeDecorators = [];
             }
@@ -429,6 +434,5 @@ class IModelComponents extends React.PureComponent<IModelComponentsProps, IModel
                 </div>
             </div>
         );
-
     }
 }
