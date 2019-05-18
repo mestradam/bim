@@ -1,34 +1,68 @@
 import pandas as pd
 import numpy as np
-import xgboost as xgb
 from sklearn.model_selection import train_test_split
+from convertbng.util import convert_bng
+from time import time
 import os
-os.chdir(r'C:\Users\vu86683\Desktop\hackathon')
+os.chdir(r'C:\Users\vu86683\Desktop\simple-viewer-app\hack\code')
+from utils_munge import *
+import json
 
+data_path = r'C:\Users\vu86683\Desktop\simple-viewer-app\hack/data/extracted'
 
+result_path = r'C:\Users\vu86683\Desktop\simple-viewer-app\hack\data\result'
 
+data_list = os.listdir(data_path)
 
+# read data
+nodes = pd.read_csv(data_path + '/' + 'sewer_nodes.csv')
+frame = pd.read_csv(data_path + '/' + 'sewer.csv')
 
+frame = frame.drop('InfCovLev', axis=1) # All null
 
+# Convert back to metre
+frame[['Height', 'Width', 'UpDepth', 'DownDepth', 'ReviewDiam']] /= 1000
+nodes[['InvertDept', 'CoverLevel', 'InfCovLev']] /= 1000
 
+# clean coordinates
+nodes = clean_coordinates(nodes, mode='node')
+
+# Impute cover level
+nodes['CoverLevel'].fillna(nodes['InfCovLev'], inplace=True)
+nodes = nodes[['X', 'Y', 'NodeRefere', 'InvertDept', 'CoverLevel']]
+
+#coordinate start is always from upnode
+# merge nodes
+frame = merge_nodes(frame, nodes)
+        
+# Impute missing
+# Depth
+frame = impute_depth(frame)
+
+# Height
+frame = impute_height(frame)
+
+# Compute elevation
+frame = compute_elevation_pipe(frame)
+
+# interpolate points
+points = interpolate(frame)
+
+# Compute points' elevations
+points = compute_elevation_point(points)
+
+# query the 10 nearest points in the 10m radius (square actually)
+radius = 10
+n_points = 10
+X = points['X'][300]
+Y = points['Y'][300]
+
+selected = get_nearest_in_area(X, Y, points, radius, n_points, False, True)
+
+print(selected)
+
+# Dump
+#points.to_csv(result_path + '/result.csv', index=False)
 #
-#Xtrain, Ytrain, Xtest, Ytest = train_test_split(X, Y, test_size=0.2)
-#dm_train = xgb.DMatrix(Xtrain, Ytrain)
-#dm_test = xgb.DMatrix(Xtest, None)
-#
-#params = {'n_estimators': 100, 
-#          'booster': 'gbtree',
-#          'objective': 'reg:linear',
-#          'eval_metric': 'rmse',
-#          'max_depth': 2,
-#          'eta': 0.1}
-#
-#mdl2 = xgb.train(params=params, 
-#                dtrain=dm_train, 
-#                num_boost_round=100)
-#
-#Y_pred_train = mdl2.predict(dm_train)
-#Y_pred_test = mdl2.predict(dm_test)
-#
-######
-#
+#with open(result_path + '/query.json', 'w') as f:
+#    json.dump(json.loads(selected), f)

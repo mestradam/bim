@@ -1,4 +1,3 @@
-#from elevation import getElevation
 import pandas as pd
 import json
 from utils_munge import *

@@ -1,0 +1,78 @@
+The documentation in a nutshell written by a sleep-deprived data scientist
+
+Objective:
+----------
+0. Favor underestimation of depth over overestimation, because believing pipes being deeper than they actually are is very dangerous
+1. Create blazingly fast algorithm, making iterations viable
+2. Query result extremely fast, so we can deploy the application on a Nokia 3310
+3. Provide granular predictions with small margin of error
+4. User friendly code. Just need to push the button and that's it.
+
+Methodology
+----------
+
+the whole process took ~1 minute to run, which makes retraining / updating the algorithm extremely viable.
+
+1. Extract data
+-- The process
+- The data comes in as shapefiles 
+	-> Load the shapefiles with QGIS
+- Pipes are multi line string, which are lines with multiple segments
+	-> break the lines into segments
+- Compute length of each segment
+- Extract the data table (coordinates, depth, elevation, material, etc.) to csv
+- Nodes data were extracted as is, no processing needed.
+
+-- Location
+- extracted data are stored in /hack/data/extracted
+
+-- Code
+Sadly there's no code for this, as QGIS is not a programming language
+
+2. Estimating depth
+-- The diagram
+Please forgive the awful drawing.
+
+-- The methodology
+
+- Pipes are straight lines, going straight from nodes to nodes in the network, gradient is constant.
+	-> confirmed by Clive, so it's completely safe to link pipes from up to down nodes
+
+- We can either compute depth taking reference from the cover level, or the sea level.
+	- Cover level varies, as the terrain may goes up and down --> not reliable
+	- Sea level stay constant --> best option
+
+- It's hard to do computation and querying if the object is a line. so it's easier if we break pipes down to points
+	-> Generate points along the pipes, with X and Y step of 1 metre
+
+- Cover level: 
+	- We tried multiple APIs to query the cover level at a specific point, even paid for an account to get good query result.
+	- However the result is awful. The result from the APIs (Google included) are always off by 3-4 metre from the one measured by NWG
+	- Granularity was terrible. Even with a paid account, we get 50 metre square resolution at best.
+
+	--> We assume the cover level to be linear between the upstream nodes and downstream nodes. 
+		We don't really want this, but we had no choice
+
+--> Solution: 
+	- Compute height of upstream nodes and downstream nodes from sea level
+	- Height of points along the pipes are weighted average of the up and down stream nodes' height, 
+		depending on how far they are from the nodes
+	- Depth of points = Cover level minus height from sea level plus pipe diameter.
+	- Adding pipe diametre because we want to always estimate pipe to be narrower than they actually are. This is because if people believe pipes are deep, they will dig more which results in damage to the pipes.
+
+3. Query result
+-- For a given input coordinate: 
+	- limit the search space to be from X coordinates +- 10 and Y coordinates +- 10 metre
+	- this is because if we were to get points from a given radius, we will need to compute the distance from a point to all the points in the network (400k), which is slow and unnecessary complex.
+	- get all the points that fall in the search space
+	- Compute the distance from the given input coordinate to all the points in the search space
+	- Get the 10 most closest pipes, order by distance from the given point.
+
+Requirements
+------------
+convertbng - for converting coordinates
+pandas
+numpy
+matplotlib
+json
+requests
