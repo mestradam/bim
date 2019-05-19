@@ -18,7 +18,7 @@ export class SampleFeatureOverrideProvider implements FeatureOverrideProvider {
         const lightGreen = FeatureSymbology.Appearance.fromRgba(ColorDef.from(0, 255, 0)); // green
         const yellow = FeatureSymbology.Appearance.fromRgba(ColorDef.from(255, 255, 0)); // yellow
         const invisible = FeatureSymbology.Appearance.fromRgba(ColorDef.from(0, 0, 0, 255));
-        const grey = FeatureSymbology.Appearance.fromRgba(ColorDef.from(40, 40, 40));
+        // const grey = FeatureSymbology.Appearance.fromRgba(ColorDef.from(40, 40, 40));
         const red = FeatureSymbology.Appearance.fromRgba(ColorDef.from(255, 0, 0));
 
         // const thicc = FeatureSymbology.Appearance.fromJSON({rgb: new RgbColor(0,250,50), weight: 5});
@@ -29,7 +29,7 @@ export class SampleFeatureOverrideProvider implements FeatureOverrideProvider {
         if (this._elements) this._elements.forEach((element: ElementProps) => {
           if (element.id) {
             if (element.userLabel !== "nwgis_sewer") {
-              _overrides.overrideElement(element.id, grey);
+              _overrides.overrideElement(element.id, invisible);
             } else {
                 if (!element.upDepth && !element.downDepth) {
                   _overrides.overrideElement(element.id, red);
