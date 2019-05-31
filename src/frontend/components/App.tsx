@@ -286,6 +286,7 @@ interface IModelComponentsState {
     vp: Viewport | undefined;
     elements: ElementProps[] | undefined;
     selectedElement: string | undefined;
+    showWater: boolean;
 }
 
 /** Renders a viewport, a tree, a property grid and a table */
@@ -294,9 +295,18 @@ class IModelComponents extends React.PureComponent<IModelComponentsProps, IModel
 
     constructor(props: IModelComponentsProps, context: any) {
         super(props, context);
-        this.state = {depthSlice: [0, 1000], vp: undefined, elements: undefined, selectedElement: undefined};
+        this.state = {depthSlice: [0, 1000], vp: undefined, elements: undefined, selectedElement: undefined, showWater: false};
         this.props.imodel.selectionSet.onChanged.addListener(this._selectionChange.bind(this));
         this._activeDecorators = [];
+        this.toggleWater = this.toggleWater.bind(this);
+    }
+
+    public toggleWater(event: any) {
+      if (event.keyCode === 32) {
+        let toggle;
+        toggle = !this.state.showWater;
+        this.setState(Object.assign({}, this.state, {showWater: toggle}));
+      }
     }
 
     public componentDidMount() {
@@ -319,6 +329,11 @@ class IModelComponents extends React.PureComponent<IModelComponentsProps, IModel
                 }
             });*/
         });
+        document.addEventListener("keydown", this.toggleWater, false);
+    }
+
+    public componentWillUnmount() {
+      document.removeEventListener("keydown", this.toggleWater, false);
     }
 
     private _setBackgroundMap = (vp: Viewport, mapType: BackgroundMapType) => {
@@ -392,7 +407,7 @@ class IModelComponents extends React.PureComponent<IModelComponentsProps, IModel
 
         if (this.state.vp && this.state.elements) {
             // set feature overrides to alter appearance of elements
-            this.state.vp.featureOverrideProvider = new SampleFeatureOverrideProvider(this.state.elements, this.state.depthSlice);
+            this.state.vp.featureOverrideProvider = new SampleFeatureOverrideProvider(this.state.elements, this.state.depthSlice, this.state.showWater);
 
             // Drop active decorators if exist
             this._activeDecorators.forEach((decorator) => IModelApp.viewManager.dropDecorator(decorator));
