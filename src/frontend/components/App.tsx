@@ -5,14 +5,9 @@
 import * as React from "react";
 import {Id64String, Id64Set, OpenMode} from "@bentley/bentleyjs-core";
 import {AccessToken, ConnectClient, IModelQuery, Project, Config} from "@bentley/imodeljs-clients";
-import {
-    IModelApp,
-    IModelConnection,
-    FrontendRequestContext,
-    AuthorizedFrontendRequestContext,
-    Viewport
-} from "@bentley/imodeljs-frontend";
+import { IModelApp, IModelConnection, FrontendRequestContext, AuthorizedFrontendRequestContext, Viewport, ViewState3d } from "@bentley/imodeljs-frontend";
 import {Presentation, SelectionChangeEventArgs, ISelectionProvider} from "@bentley/presentation-frontend";
+
 import {Button, ButtonSize, ButtonType, Spinner, SpinnerSize} from "@bentley/ui-core";
 import {SignIn} from "@bentley/ui-components";
 import {SimpleViewerApp} from "../api/SimpleViewerApp";
@@ -22,7 +17,7 @@ import TreeWidget from "./Tree";
 import ViewportContentControl from "./Viewport";
 import "@bentley/icons-generic-webfont/dist/bentley-icons-generic-webfont.css";
 import "./App.css";
-import {ElementProps, RenderMode} from "@bentley/imodeljs-common";
+import {ElementProps, RenderMode, BackgroundMapType} from "@bentley/imodeljs-common";
 import {SampleFeatureOverrideProvider} from "./SampleFeatureOverrideProvider";
 import {createSliderWithTooltip, Range} from "rc-slider";
 import "rc-slider/assets/index.css";
@@ -33,6 +28,7 @@ import {Data} from "./Data";
 // cSpell:ignore imodels
 
 // const createSliderWithTooltip = Slider.createSliderWithTooltip;
+// tslint:disable-next-line:variable-name
 const RangeOfTwo = createSliderWithTooltip(Range);
 
 /** React state of the App component */
@@ -307,10 +303,11 @@ class IModelComponents extends React.PureComponent<IModelComponentsProps, IModel
         IModelApp.viewManager.onViewOpen.addOnce(async (vp: Viewport) => {
             // once view renders, set to solid fill
             this._setSolidRender(vp);
-            this.setState(Object.assign({}, this.state, {vp: vp}));
+            this.setState(Object.assign({}, this.state, {vp}));
+            this._setBackgroundMap(vp, BackgroundMapType.Hybrid);
         });
         this._loadElements(this.props.imodel).then((elements: ElementProps[]) => {
-            this.setState(Object.assign({}, this.state, {elements: elements}));
+            this.setState(Object.assign({}, this.state, {elements}));
 
             /*TODO invent depth from CSV
             elements.forEach(element => {
@@ -324,36 +321,48 @@ class IModelComponents extends React.PureComponent<IModelComponentsProps, IModel
         });
     }
 
+    private _setBackgroundMap = (vp: Viewport, mapType: BackgroundMapType) => {
+      vp.viewFlags.backgroundMap = true;
+      const mapProps = {
+        providerName: "BingProvider",
+        providerData: {
+          mapType,
+        },
+      };
+      (vp.view as ViewState3d).getDisplayStyle3d().setBackgroundMap(mapProps);
+      vp.synchWithView(true);
+    }
+
     private _loadElements = async (imodel: IModelConnection) => {
         // load all physical elements in the iModel
-        return await imodel.elements.queryProps({
-            from: "Bis.PhysicalElement"
+        return imodel.elements.queryProps({
+            from: "Bis.PhysicalElement",
         });
-    };
+    }
 
     private _setSolidRender = (vp: Viewport) => {
         vp.viewFlags.renderMode = RenderMode.SolidFill;
         vp.sync.invalidateController();
         vp.target.reset();
         vp.synchWithView(false);
-    };
+    }
 
     private _sliderChange = (slice: number[]) => {
         this.setState(Object.assign({}, this.state, {depthSlice: slice}));
-    };
+    }
 
     private _selectionChange(_imodel: IModelConnection, _eventType: any, elements?: Id64Set) {
-        console.log('_selectionChange ', elements);
+        console.log("_selectionChange ", elements);
 
         // Used as a one-off to retrieve big array of IDs
         // if (elements) this.manyQuery(_imodel, elements);
 
-        let nextElement = elements && elements.entries().next();
+        const nextElement = elements && elements.entries().next();
         if (nextElement) {
             _imodel.elements.getProps(nextElement.value[0]).then((ep: ElementProps[]) => {
                 console.log("Retrieve ElementProps ", ep);
                 this.setState(Object.assign({}, this.state, {
-                    selectedElement: ep[0].bentley_ID_
+                    selectedElement: ep[0].bentley_ID_,
                 }));
             });
         } else {
@@ -386,20 +395,20 @@ class IModelComponents extends React.PureComponent<IModelComponentsProps, IModel
             this.state.vp.featureOverrideProvider = new SampleFeatureOverrideProvider(this.state.elements, this.state.depthSlice);
 
             // Drop active decorators if exist
-            this._activeDecorators.forEach(decorator => IModelApp.viewManager.dropDecorator(decorator));
+            this._activeDecorators.forEach((decorator) => IModelApp.viewManager.dropDecorator(decorator));
             // Create new decorators if something is selected
             if (this.state.selectedElement) {
 
                 console.log("this.state.selectedElement ", this.state.selectedElement);
 
                 const filteredData = Data.data
-                    .filter(datum => datum.ID === this.state.selectedElement);
-                const min:number = Math.min(...filteredData.map(datum => datum.depth));
-                const max:number = Math.max(...filteredData.map(datum => datum.depth));
+                    .filter((datum) => datum.ID === this.state.selectedElement);
+                const min: number = Math.min(...filteredData.map((datum) => datum.depth));
+                const max: number = Math.max(...filteredData.map((datum) => datum.depth));
 
                 this._activeDecorators = filteredData
-                    .map(datum => new CylinderDecorator(datum.X, datum.Y, datum.depth, min, max));
-                this._activeDecorators.forEach(dec => IModelApp.viewManager.addDecorator(dec));
+                    .map((datum) => new CylinderDecorator(datum.X, datum.Y, datum.depth, min, max));
+                this._activeDecorators.forEach((dec) => IModelApp.viewManager.addDecorator(dec));
 
             } else {
                 this._activeDecorators = [];
