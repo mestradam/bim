@@ -12,6 +12,7 @@ export class SampleFeatureOverrideProvider implements FeatureOverrideProvider {
         this._elements = elements;
         this._depthSlice = depthSlice;
         this._showWater = showWater;
+        this._showRed = showRed;
     }
 
     // interface function to set feature overrides
