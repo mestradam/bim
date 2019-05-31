@@ -16,24 +16,42 @@ export class SampleFeatureOverrideProvider implements FeatureOverrideProvider {
 
         const defaultAppearance = FeatureSymbology.Appearance.fromRgba(ColorDef.white);
         const lightGreen = FeatureSymbology.Appearance.fromRgba(ColorDef.from(0, 255, 0)); // green
-        const darkGreen = FeatureSymbology.Appearance.fromRgba(ColorDef.from(0, 100, 0)); // green
+        const yellow = FeatureSymbology.Appearance.fromRgba(ColorDef.from(255, 255, 0)); // yellow
         const invisible = FeatureSymbology.Appearance.fromRgba(ColorDef.from(0, 0, 0, 255));
+        // const grey = FeatureSymbology.Appearance.fromRgba(ColorDef.from(40, 40, 40));
+        const red = FeatureSymbology.Appearance.fromRgba(ColorDef.from(255, 0, 0));
 
         // const thicc = FeatureSymbology.Appearance.fromJSON({rgb: new RgbColor(0,250,50), weight: 5});
 
         // set default appearance for all elements
         _overrides.setDefaultOverrides(defaultAppearance);
         // set appearance of elements passed in
-            if (this._elements) this._elements.forEach((element: ElementProps) => {
-                if (element.id) {
-                    if (element.geometry_Length < this._depthSlice[0] || element.geometry_Length > this._depthSlice[1]) {
-                        _overrides.overrideElement(element.id, invisible);
-                    } else if (element.geometry_Length < 50) {
-                        _overrides.overrideElement(element.id, darkGreen);
+        if (this._elements) this._elements.forEach((element: ElementProps) => {
+          if (element.id) {
+            if (element.userLabel !== "nwgis_sewer") {
+              _overrides.overrideElement(element.id, invisible);
+            } else {
+                if (!element.upDepth && !element.downDepth) {
+                  _overrides.overrideElement(element.id, red);
+                } else {
+                  if (element.upDepth && element.downDepth) {
+                    const avg = ((element.upDepth) / 2 + (element.downDepth) / 2);
+                    if (avg < this._depthSlice[0] || avg > this._depthSlice[1]) {
+                      _overrides.overrideElement(element.id, invisible);
                     } else {
-                        _overrides.overrideElement(element.id, lightGreen);
+                      _overrides.overrideElement(element.id, lightGreen);
                     }
+                  } else {
+                    const height = element.upDepth ? element.upDepth : element.downDepth;
+                    if (height < this._depthSlice[0] || height > this._depthSlice[1]) {
+                      _overrides.overrideElement(element.id, invisible);
+                    } else {
+                      _overrides.overrideElement(element.id, yellow);
+                    }
+                  }
                 }
-            });
+              }
+          }
+        });
     }
 }

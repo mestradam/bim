@@ -3,16 +3,11 @@
 * Licensed under the MIT License. See LICENSE.md in the project root for license terms.
 *--------------------------------------------------------------------------------------------*/
 import * as React from "react";
-import {Id64String, OpenMode} from "@bentley/bentleyjs-core";
+import {Id64String, Id64Set, OpenMode} from "@bentley/bentleyjs-core";
 import {AccessToken, ConnectClient, IModelQuery, Project, Config} from "@bentley/imodeljs-clients";
-import {
-    IModelApp,
-    IModelConnection,
-    FrontendRequestContext,
-    AuthorizedFrontendRequestContext,
-    Viewport
-} from "@bentley/imodeljs-frontend";
+import { IModelApp, IModelConnection, FrontendRequestContext, AuthorizedFrontendRequestContext, Viewport, ViewState3d } from "@bentley/imodeljs-frontend";
 import {Presentation, SelectionChangeEventArgs, ISelectionProvider} from "@bentley/presentation-frontend";
+
 import {Button, ButtonSize, ButtonType, Spinner, SpinnerSize} from "@bentley/ui-core";
 import {SignIn} from "@bentley/ui-components";
 import {SimpleViewerApp} from "../api/SimpleViewerApp";
@@ -22,15 +17,18 @@ import TreeWidget from "./Tree";
 import ViewportContentControl from "./Viewport";
 import "@bentley/icons-generic-webfont/dist/bentley-icons-generic-webfont.css";
 import "./App.css";
-import {ElementProps, RenderMode} from "@bentley/imodeljs-common";
+import {ElementProps, RenderMode, BackgroundMapType} from "@bentley/imodeljs-common";
 import {SampleFeatureOverrideProvider} from "./SampleFeatureOverrideProvider";
-import {createSliderWithTooltip, Range} from 'rc-slider';
-import 'rc-slider/assets/index.css';
+import {createSliderWithTooltip, Range} from "rc-slider";
+import "rc-slider/assets/index.css";
+import {CylinderDecorator} from "./CylinderDecorator";
+import {Data} from "./Data";
 
 // tslint:disable: no-console
 // cSpell:ignore imodels
 
 // const createSliderWithTooltip = Slider.createSliderWithTooltip;
+// tslint:disable-next-line:variable-name
 const RangeOfTwo = createSliderWithTooltip(Range);
 
 /** React state of the App component */
@@ -160,6 +158,7 @@ export default class App extends React.Component<{}, AppState> {
                 await imodel.close();
             }
             this.setState({imodel: undefined, viewDefinitionId: undefined});
+            console.log(e);
             alert(e.message);
         }
     }
@@ -258,6 +257,7 @@ class OpenIModelButton extends React.PureComponent<OpenIModelButtonProps, OpenIM
                 imodel = await IModelConnection.open(info.projectId, info.imodelId, OpenMode.Readonly);
             }
         } catch (e) {
+            console.log(e);
             alert(e.message);
         }
         await this.onIModelSelected(imodel);
@@ -283,27 +283,33 @@ interface IModelComponentsProps {
 
 interface IModelComponentsState {
     depthSlice: number[];
+    vp: Viewport | undefined;
+    elements: ElementProps[] | undefined;
+    selectedElement: string | undefined;
 }
 
 /** Renders a viewport, a tree, a property grid and a table */
 class IModelComponents extends React.PureComponent<IModelComponentsProps, IModelComponentsState> {
-    private _vp: Viewport | undefined;
-    private _elements: ElementProps[] | undefined;
+    private _activeDecorators: CylinderDecorator[];
 
     constructor(props: IModelComponentsProps, context: any) {
         super(props, context);
-        this.state = {depthSlice: [0, 1000]};
+        this.state = {depthSlice: [0, 1000], vp: undefined, elements: undefined, selectedElement: undefined};
+        this.props.imodel.selectionSet.onChanged.addListener(this._selectionChange.bind(this));
+        this._activeDecorators = [];
     }
 
     public componentDidMount() {
         IModelApp.viewManager.onViewOpen.addOnce(async (vp: Viewport) => {
             // once view renders, set to solid fill
             this._setSolidRender(vp);
-            this._vp = vp;
+            this.setState(Object.assign({}, this.state, {vp}));
+            this._setBackgroundMap(vp, BackgroundMapType.Hybrid);
         });
         this._loadElements(this.props.imodel).then((elements: ElementProps[]) => {
-            this._elements = elements;
-            /*TODO
+            this.setState(Object.assign({}, this.state, {elements}));
+
+            /*TODO invent depth from CSV
             elements.forEach(element => {
                 if (!(element.upDepth && element.downDepth)) {
                     element.recalculatedDepth = Data.data
@@ -315,36 +321,104 @@ class IModelComponents extends React.PureComponent<IModelComponentsProps, IModel
         });
     }
 
+    private _setBackgroundMap = (vp: Viewport, mapType: BackgroundMapType) => {
+      vp.viewFlags.backgroundMap = true;
+      const mapProps = {
+        providerName: "BingProvider",
+        providerData: {
+          mapType,
+        },
+      };
+      (vp.view as ViewState3d).getDisplayStyle3d().setBackgroundMap(mapProps);
+      vp.synchWithView(true);
+    }
+
     private _loadElements = async (imodel: IModelConnection) => {
         // load all physical elements in the iModel
-        return await imodel.elements.queryProps({
-            from: "Bis.PhysicalElement"
+        return imodel.elements.queryProps({
+            from: "Bis.PhysicalElement",
         });
-    };
+    }
 
     private _setSolidRender = (vp: Viewport) => {
         vp.viewFlags.renderMode = RenderMode.SolidFill;
         vp.sync.invalidateController();
         vp.target.reset();
         vp.synchWithView(false);
-    };
+    }
 
     private _sliderChange = (slice: number[]) => {
-        this.setState({depthSlice: slice});
-    };
+        this.setState(Object.assign({}, this.state, {depthSlice: slice}));
+    }
+
+    private _selectionChange(_imodel: IModelConnection, _eventType: any, elements?: Id64Set) {
+        console.log("_selectionChange ", elements);
+
+        // Used as a one-off to retrieve big array of IDs
+        // if (elements) this.manyQuery(_imodel, elements);
+
+        const nextElement = elements && elements.entries().next();
+        if (nextElement) {
+            _imodel.elements.getProps(nextElement.value[0]).then((ep: ElementProps[]) => {
+                console.log("Retrieve ElementProps ", ep);
+                this.setState(Object.assign({}, this.state, {
+                    selectedElement: ep[0].bentley_ID_,
+                }));
+            });
+        } else {
+            this.setState(Object.assign({}, this.state, {
+                selectedElement: undefined,
+            }));
+        }
+    }
+
+    // Used as a one-off to retrieve big array of IDs
+    /*private async manyQuery(_imodel: IModelConnection, elements: Set<string>) {
+        let u: string[] = [];
+        elements.forEach(nextElement => _imodel.elements.getProps(nextElement).then((ep: ElementProps[]) => {
+            u.push(ep[0].bentley_ID_);
+        }));
+
+        setTimeout(() =>
+                console.log(u),
+            5000);
+
+    }*/
 
     public render() {
-        if (this._vp && this._elements) {
-            // set feature overrides to alter appearance of elements
-            this._vp.featureOverrideProvider = new SampleFeatureOverrideProvider(this._elements, this.state.depthSlice);
-        }
-
         // ID of the presentation ruleset used by all of the controls; the ruleset
         // can be found at `assets/presentation_rules/Default.PresentationRuleSet.xml`
         const rulesetId = "Default";
+
+        if (this.state.vp && this.state.elements) {
+            // set feature overrides to alter appearance of elements
+            this.state.vp.featureOverrideProvider = new SampleFeatureOverrideProvider(this.state.elements, this.state.depthSlice);
+
+            // Drop active decorators if exist
+            this._activeDecorators.forEach((decorator) => IModelApp.viewManager.dropDecorator(decorator));
+            // Create new decorators if something is selected
+            if (this.state.selectedElement) {
+
+                console.log("this.state.selectedElement ", this.state.selectedElement);
+
+                const filteredData = Data.data
+                    .filter((datum) => datum.ID === this.state.selectedElement);
+                const min: number = Math.min(...filteredData.map((datum) => datum.depth));
+                const max: number = Math.max(...filteredData.map((datum) => datum.depth));
+
+                this._activeDecorators = filteredData
+                    .map((datum) => new CylinderDecorator(datum.X, datum.Y, datum.depth, min, max));
+                this._activeDecorators.forEach((dec) => IModelApp.viewManager.addDecorator(dec));
+
+            } else {
+                this._activeDecorators = [];
+            }
+        }
+
         return (
             <div className="app-content">
-                <div className="top-left">
+                <div className="top-left"
+                     style={{visibility: this.state.vp && this.state.elements ? "inherit" : "hidden"}}>
                     <ViewportContentControl imodel={this.props.imodel} rulesetId={rulesetId}
                                             viewDefinitionId={this.props.viewDefinitionId}/>
                 </div>
@@ -361,10 +435,10 @@ class IModelComponents extends React.PureComponent<IModelComponentsProps, IModel
                 </div>
                 <div className="middle-left">
                     <p>Depth slice:</p>
-                    <RangeOfTwo min={100}
-                       max={3000}
-                       defaultValue={[500, 1000]}
-                       onChange={this._sliderChange}
+                    <RangeOfTwo min={0}
+                                max={8000}
+                                defaultValue={[0, 1000]}
+                                onChange={this._sliderChange}
                     />
                 </div>
             </div>
