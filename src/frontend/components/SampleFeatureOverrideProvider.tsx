@@ -65,7 +65,7 @@ export class SampleFeatureOverrideProvider implements FeatureOverrideProvider {
                     if (avg < this._depthSlice[0] || avg > this._depthSlice[1]) {
                       _overrides.overrideElement(element.id, invisible);
                     } else {
-                      const hue = (avg / 8000);
+                      const hue = ((avg - 500) / 7500);
                       const c = this.toRGB(hue);
                       _overrides.overrideElement(element.id, FeatureSymbology.Appearance.fromRgba(ColorDef.from(c.r, c.g, c.b)));
                     }
@@ -74,7 +74,7 @@ export class SampleFeatureOverrideProvider implements FeatureOverrideProvider {
                     if (height < this._depthSlice[0] || height > this._depthSlice[1]) {
                       _overrides.overrideElement(element.id, invisible);
                     } else {
-                      const hue = (height / 8000);
+                      const hue = ((height - 500) / 7500);
                       const c = this.toRGB(hue);
                       _overrides.overrideElement(element.id, FeatureSymbology.Appearance.fromRgba(ColorDef.from(c.r, c.g, c.b)));
                     }
