@@ -22,9 +22,9 @@ export class SampleFeatureOverrideProvider implements FeatureOverrideProvider {
         const lightGreen = FeatureSymbology.Appearance.fromRgba(ColorDef.from(0, 255, 0)); // green
         const yellow = FeatureSymbology.Appearance.fromRgba(ColorDef.from(255, 255, 0)); // yellow
         const invisible = FeatureSymbology.Appearance.fromRgba(ColorDef.from(0, 0, 0, 255));
-        const greyAlpha = this._showWater ? 0 : 255;
+        const greyAlpha = this._showWater ? 0 : 255; // 0 is opaque, 255 is transparent
         const grey = FeatureSymbology.Appearance.fromRgba(ColorDef.from(40, 40, 40, greyAlpha));
-        const redAlpha = this._showRed ? 0 : 255;
+        const redAlpha = this._showRed ? 0 : 255; // 0 is opaque, 255 is transparent
         const red = FeatureSymbology.Appearance.fromRgba(ColorDef.from(255, 0, 0, redAlpha));
 
         // const thicc = FeatureSymbology.Appearance.fromJSON({rgb: new RgbColor(0,250,50), weight: 5});
