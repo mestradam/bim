@@ -40,6 +40,7 @@ export interface AppState {
     offlineIModel: boolean;
     imodel?: IModelConnection;
     viewDefinitionId?: Id64String;
+    fullScreen: boolean;
 }
 
 /** A component the renders the whole application UI */
@@ -54,7 +55,9 @@ export default class App extends React.Component<{}, AppState> {
                 accessToken: undefined,
             },
             offlineIModel: false,
+            fullScreen: false
         };
+        this._keyPress = this._keyPress.bind(this);
     }
 
     public componentDidMount() {
@@ -69,6 +72,8 @@ export default class App extends React.Component<{}, AppState> {
                     this.setState((prev) => ({user: {...prev.user, accessToken, isLoading: false}}));
                 });
         }
+
+        document.addEventListener("keydown", this._keyPress, false);
     }
 
     public componentWillUnmount() {
@@ -76,6 +81,8 @@ export default class App extends React.Component<{}, AppState> {
         Presentation.selection.selectionChange.removeListener(this._onSelectionChanged);
         // unsubscribe from user state changes
         SimpleViewerApp.oidcClient.onUserStateChanged.removeListener(this._onUserStateChanged);
+
+        document.removeEventListener("keydown", this._keyPress, false);
     }
 
     private _onSelectionChanged = (evt: SelectionChangeEventArgs, selectionProvider: ISelectionProvider) => {
@@ -168,6 +175,16 @@ export default class App extends React.Component<{}, AppState> {
         return split[split.length - 1];
     }
 
+    private _keyPress(event: any) {
+        switch (event.keyCode) {
+            case 70: // "F"
+                // Toggles the viewpoert taking over entire screen
+                // todo use this kind of assignment in the other places
+                this.setState(s => ({fullScreen: !s.fullScreen}));
+                break;
+        }
+    }
+
     /** The component's render method */
     public render() {
         let ui: React.ReactNode;
@@ -187,9 +204,12 @@ export default class App extends React.Component<{}, AppState> {
             ui = (<IModelComponents imodel={this.state.imodel} viewDefinitionId={this.state.viewDefinitionId}/>);
         }
 
+        // To hide everything when the viewport id full screen
+        let appClassName = this.state.fullScreen ? 'app app-full-screen' : 'app';
+
         // render the app
         return (
-            <div className="app">
+            <div className={appClassName}>
                 <div className="app-header">
                     <h2>{IModelApp.i18n.translate("SimpleViewer:welcome-message")}</h2>
                 </div>
@@ -441,20 +461,13 @@ class IModelComponents extends React.PureComponent<IModelComponentsProps, IModel
 
         return (
             <div className="app-content">
-                <div className="top-left"
-                     style={{visibility: this.state.vp && this.state.elements ? "inherit" : "hidden"}}>
-                    <ViewportContentControl imodel={this.props.imodel} rulesetId={rulesetId}
-                                            viewDefinitionId={this.props.viewDefinitionId}/>
+                <div className="top-right">
+                    <TreeWidget imodel={this.props.imodel} rulesetId={rulesetId}/>
                 </div>
-                <div className="right">
-                    <div className="top">
-                        <TreeWidget imodel={this.props.imodel} rulesetId={rulesetId}/>
-                    </div>
-                    <div className="bottom">
-                        <PropertiesWidget imodel={this.props.imodel} rulesetId={rulesetId}/>
-                    </div>
+                <div className="bottom-right">
+                    <PropertiesWidget imodel={this.props.imodel} rulesetId={rulesetId}/>
                 </div>
-                <div className="bottom">
+                <div className="bottom-left">
                     <GridWidget imodel={this.props.imodel} rulesetId={rulesetId}/>
                 </div>
                 <div className="middle-left">
@@ -464,6 +477,11 @@ class IModelComponents extends React.PureComponent<IModelComponentsProps, IModel
                                 defaultValue={[0, 1000]}
                                 onChange={this._sliderChange}
                     />
+                </div>
+                <div className="top-left"
+                     style={{visibility: this.state.vp && this.state.elements ? "inherit" : "hidden"}}>
+                    <ViewportContentControl imodel={this.props.imodel} rulesetId={rulesetId}
+                                            viewDefinitionId={this.props.viewDefinitionId}/>
                 </div>
             </div>
         );
