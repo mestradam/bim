@@ -178,8 +178,7 @@ export default class App extends React.Component<{}, AppState> {
     private _keyPress(event: any) {
         switch (event.keyCode) {
             case 70: // "F"
-                // Toggles the viewpoert taking over entire screen
-                // todo use this kind of assignment in the other places
+                // Toggles the viewport taking over entire screen
                 this.setState(s => ({fullScreen: !s.fullScreen}));
                 break;
         }
@@ -335,11 +334,11 @@ class IModelComponents extends React.PureComponent<IModelComponentsProps, IModel
         IModelApp.viewManager.onViewOpen.addOnce(async (vp: Viewport) => {
             // once view renders, set to solid fill
             this._setSolidRender(vp);
-            this.setState(Object.assign({}, this.state, {vp}));
+            this.setState(() => ({vp}));
             this._setBackgroundMap(vp, BackgroundMapType.Hybrid);
         });
         this._loadElements(this.props.imodel).then((elements: ElementProps[]) => {
-            this.setState(Object.assign({}, this.state, {elements}));
+            this.setState(() => ({elements}));
 
             /*TODO invent depth from CSV
             elements.forEach(element => {
@@ -385,23 +384,20 @@ class IModelComponents extends React.PureComponent<IModelComponentsProps, IModel
     }
 
     private _sliderChange = (slice: number[]) => {
-        this.setState(Object.assign({}, this.state, {depthSlice: slice}));
+        this.setState(() => ({depthSlice: slice}));
     }
 
     private keyPress(event: any) {
-      let toggle;
       switch (event.keyCode) {
 
         case 32: // "Spacebar"
           // Toggles showing the water pipes as "grey" or "invisible"
-          toggle = !this.state.showWater;
-          this.setState(Object.assign({}, this.state, {showWater: toggle}));
+          this.setState(s => ({showWater: !s.showWater}));
           break;
 
         case 82: // "R"
           // Toggles showing the pipes we have no information about as "red" or "invisible"
-          toggle = !this.state.showRed;
-          this.setState(Object.assign({}, this.state, {showRed: toggle}));
+          this.setState(s => ({showRed: !s.showRed}));
           break;
 
         case 77: // "M"
@@ -425,14 +421,10 @@ class IModelComponents extends React.PureComponent<IModelComponentsProps, IModel
         if (nextElement) {
             _imodel.elements.getProps(nextElement.value[0]).then((ep: ElementProps[]) => {
                 console.log("Retrieve ElementProps ", ep);
-                this.setState(Object.assign({}, this.state, {
-                    selectedElement: ep[0].bentley_ID_,
-                }));
+                this.setState(() => ({selectedElement: ep[0].bentley_ID_}));
             });
         } else {
-            this.setState(Object.assign({}, this.state, {
-                selectedElement: undefined,
-            }));
+            this.setState(() => ({selectedElement: undefined}));
         }
     }
 
