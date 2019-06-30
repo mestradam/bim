@@ -21,9 +21,15 @@
   display: none;
 }
 
+.app .button-open-imodel-wrapper {
+  width: 400px;
+  margin: 30vh auto auto auto;
+}
+
 .app .button-open-imodel {
   width: 200px;
-  margin: 30vh auto auto auto;
+  margin: auto;
+  display: block;
   padding-left: 0;
   padding-right: 0;
 }

@@ -285,12 +285,21 @@ class OpenIModelButton extends React.PureComponent<OpenIModelButtonProps, OpenIM
 
     public render() {
         return (
+          <div className="button-open-imodel-wrapper">
             <Button size={ButtonSize.Large} buttonType={ButtonType.Primary} className="button-open-imodel"
                     onClick={this._onClick}>
                 <span>{IModelApp.i18n.translate("SimpleViewer:components.imodel-picker.open-imodel")}</span>
                 {this.state.isLoading ?
                     <span style={{marginLeft: "8px"}}><Spinner size={SpinnerSize.Small}/></span> : undefined}
             </Button>
+            <p>Keyboard shortcuts:</p>
+              <ul>
+                  <li><b>Space </b> Toggle showing the water pipes as "grey" or "invisible"</li>
+                  <li><b>R </b> Toggle showing the pipes we have no information about as "red" or "invisible"</li>
+                  <li><b>F </b> Toggle the viewpoert taking over entire screen</li>
+                  <li><b>M </b> Toggle map backdrop</li>
+              </ul>
+          </div>
         );
     }
 }
