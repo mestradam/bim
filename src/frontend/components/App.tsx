@@ -391,15 +391,26 @@ class IModelComponents extends React.PureComponent<IModelComponentsProps, IModel
     private keyPress(event: any) {
       let toggle;
       switch (event.keyCode) {
+
         case 32: // "Spacebar"
           // Toggles showing the water pipes as "grey" or "invisible"
           toggle = !this.state.showWater;
           this.setState(Object.assign({}, this.state, {showWater: toggle}));
           break;
+
         case 82: // "R"
           // Toggles showing the pipes we have no information about as "red" or "invisible"
           toggle = !this.state.showRed;
           this.setState(Object.assign({}, this.state, {showRed: toggle}));
+          break;
+
+        case 77: // "M"
+          // Toggle background map
+          if (this.state.vp) {
+              this.state.vp.viewFlags.backgroundMap = !this.state.vp.viewFlags.backgroundMap;
+              // TODO Doesn't work all the time
+              this.forceUpdate();
+          }
           break;
       }
     }
