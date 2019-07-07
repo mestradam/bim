@@ -72,7 +72,8 @@ export class SampleFeatureOverrideProvider implements FeatureOverrideProvider {
                   if (height < this._depthSlice[0] || height > this._depthSlice[1]) {
                     _overrides.overrideElement(element.id, invisible);
                   } else {
-                    const hue = ((8000 - height) / 22000);
+                    let hue = ((7000 - height) / 21000);
+                    hue = hue < 0 ? 0 : hue;
                     const c = this.toRGB(hue);
                     _overrides.overrideElement(element.id, FeatureSymbology.Appearance.fromRgba(ColorDef.from(c.r, c.g, c.b)));
                   }
