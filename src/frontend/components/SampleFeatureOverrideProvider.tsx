@@ -60,24 +60,21 @@ export class SampleFeatureOverrideProvider implements FeatureOverrideProvider {
                 if (!element.upDepth && !element.downDepth) {
                   _overrides.overrideElement(element.id, red);
                 } else {
+                  // Use the best approximation for height
+                  let height;
                   if (element.upDepth && element.downDepth) {
-                    const avg = ((element.upDepth) / 2 + (element.downDepth) / 2);
-                    if (avg < this._depthSlice[0] || avg > this._depthSlice[1]) {
-                      _overrides.overrideElement(element.id, invisible);
-                    } else {
-                      const hue = ((avg - 500) / 7500);
-                      const c = this.toRGB(hue);
-                      _overrides.overrideElement(element.id, FeatureSymbology.Appearance.fromRgba(ColorDef.from(c.r, c.g, c.b)));
-                    }
+                    height = ((element.upDepth) / 2 + (element.downDepth) / 2);
                   } else {
-                    const height = element.upDepth ? element.upDepth : element.downDepth;
-                    if (height < this._depthSlice[0] || height > this._depthSlice[1]) {
-                      _overrides.overrideElement(element.id, invisible);
-                    } else {
-                      const hue = ((height - 500) / 7500);
-                      const c = this.toRGB(hue);
-                      _overrides.overrideElement(element.id, FeatureSymbology.Appearance.fromRgba(ColorDef.from(c.r, c.g, c.b)));
-                    }
+                    height = element.upDepth ? element.upDepth : element.downDepth;
+                  }
+
+                  // Colour calculation done in HSV space then converted back to RGB
+                  if (height < this._depthSlice[0] || height > this._depthSlice[1]) {
+                    _overrides.overrideElement(element.id, invisible);
+                  } else {
+                    const hue = ((8000 - height) / 22000);
+                    const c = this.toRGB(hue);
+                    _overrides.overrideElement(element.id, FeatureSymbology.Appearance.fromRgba(ColorDef.from(c.r, c.g, c.b)));
                   }
                 }
               }

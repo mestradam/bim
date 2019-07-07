@@ -55,7 +55,7 @@ export default class App extends React.Component<{}, AppState> {
                 accessToken: undefined,
             },
             offlineIModel: false,
-            fullScreen: false
+            fullScreen: false,
         };
         this._keyPress = this._keyPress.bind(this);
     }
@@ -179,7 +179,7 @@ export default class App extends React.Component<{}, AppState> {
         switch (event.keyCode) {
             case 70: // "F"
                 // Toggles the viewport taking over entire screen
-                this.setState(s => ({fullScreen: !s.fullScreen}));
+                this.setState((s) => ({fullScreen: !s.fullScreen}));
                 break;
         }
     }
@@ -204,7 +204,7 @@ export default class App extends React.Component<{}, AppState> {
         }
 
         // To hide everything when the viewport id full screen
-        let appClassName = this.state.fullScreen ? 'app app-full-screen' : 'app';
+        const appClassName = this.state.fullScreen ? "app app-full-screen" : "app";
 
         // render the app
         return (
@@ -295,7 +295,7 @@ class OpenIModelButton extends React.PureComponent<OpenIModelButtonProps, OpenIM
               <ul>
                   <li><b>Space </b> Toggle showing the water pipes as "grey" or "invisible"</li>
                   <li><b>R </b> Toggle showing the pipes we have no information about as "red" or "invisible"</li>
-                  <li><b>F </b> Toggle the viewpoert taking over entire screen</li>
+                  <li><b>F </b> Toggle the viewport taking over entire screen</li>
                   <li><b>M </b> Toggle map backdrop</li>
               </ul>
           </div>
@@ -392,12 +392,12 @@ class IModelComponents extends React.PureComponent<IModelComponentsProps, IModel
 
         case 32: // "Spacebar"
           // Toggles showing the water pipes as "grey" or "invisible"
-          this.setState(s => ({showWater: !s.showWater}));
+          this.setState((s) => ({showWater: !s.showWater}));
           break;
 
         case 82: // "R"
           // Toggles showing the pipes we have no information about as "red" or "invisible"
-          this.setState(s => ({showRed: !s.showRed}));
+          this.setState((s) => ({showRed: !s.showRed}));
           break;
 
         case 77: // "M"
@@ -405,7 +405,7 @@ class IModelComponents extends React.PureComponent<IModelComponentsProps, IModel
           if (this.state.vp) {
               this.state.vp.viewFlags.backgroundMap = !this.state.vp.viewFlags.backgroundMap;
               // TODO Doesn't work all the time
-              this.forceUpdate();
+              // this.forceUpdate();
           }
           break;
       }
