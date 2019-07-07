@@ -404,8 +404,8 @@ class IModelComponents extends React.PureComponent<IModelComponentsProps, IModel
           // Toggle background map
           if (this.state.vp) {
               this.state.vp.viewFlags.backgroundMap = !this.state.vp.viewFlags.backgroundMap;
-              // TODO Doesn't work all the time
-              // this.forceUpdate();
+              // Update the viewport with the change
+              this.state.vp.synchWithView(false);
           }
           break;
       }
