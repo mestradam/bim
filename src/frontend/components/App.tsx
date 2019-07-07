@@ -23,6 +23,7 @@ import {createSliderWithTooltip, Range} from "rc-slider";
 import "rc-slider/assets/index.css";
 import {CylinderDecorator} from "./CylinderDecorator";
 import {Data} from "./Data";
+import { IModelUpdateRpcInterface } from "../../common/IModelUpdateRpcInterface";
 
 // tslint:disable: no-console
 // cSpell:ignore imodels
@@ -146,29 +147,31 @@ export default class App extends React.Component<{}, AppState> {
         return acceptedViewSpecs[0].id!;
     }
 
-    /** Handle iModel open event */
-    private _onIModelSelected = async (imodel: IModelConnection | undefined) => {
-        if (!imodel) {
-            // reset the state when imodel is closed
-            this.setState({imodel: undefined, viewDefinitionId: undefined});
-            return;
-        }
-        try {
-            // attempt to get a view definition
-            const viewDefinitionId = imodel ? await this.getFirstViewDefinitionId(imodel) : undefined;
-            this.setState({imodel, viewDefinitionId});
-        } catch (e) {
-            // if failed, close the imodel and reset the state
-            if (this.state.offlineIModel) {
-                await imodel.closeSnapshot();
-            } else {
-                await imodel.close();
-            }
-            this.setState({imodel: undefined, viewDefinitionId: undefined});
-            console.log(e);
-            alert(e.message);
-        }
+  /** Handle iModel open event */
+  private _onIModelSelected = async (imodel: IModelConnection | undefined) => {
+    if (!imodel) {
+      // reset the state when imodel is closed
+      this.setState({ imodel: undefined, viewDefinitionId: undefined });
+      return;
     }
+    try {
+      console.log("========== IModelUpdate: Started ==========");
+      await IModelUpdateRpcInterface.getClient().updateDepthData(imodel.iModelToken, this.state.user.accessToken!, false);
+      console.log("========== IModelUpdate: Finished ==========");
+      // attempt to get a view definition
+      const viewDefinitionId = imodel ? await this.getFirstViewDefinitionId(imodel) : undefined;
+      this.setState({ imodel, viewDefinitionId });
+    } catch (e) {
+      // if failed, close the imodel and reset the state
+      if (this.state.offlineIModel) {
+        await imodel.closeSnapshot();
+      } else {
+        await imodel.close();
+      }
+      this.setState({ imodel: undefined, viewDefinitionId: undefined });
+      alert(e.message);
+    }
+  }
 
     private get _signInRedirectUri() {
         const split = (Config.App.get("imjs_browser_test_redirect_uri") as string).split("://");
@@ -263,24 +266,23 @@ class OpenIModelButton extends React.PureComponent<OpenIModelButtonProps, OpenIM
         this.setState({isLoading: false});
     }
 
-    private _onClick = async () => {
-        this.setState({isLoading: true});
-        let imodel: IModelConnection | undefined;
-        try {
-            // attempt to open the imodel
-            if (this.props.offlineIModel) {
-                const offlineIModel = Config.App.getString("imjs_offline_imodel");
-                imodel = await IModelConnection.openSnapshot(offlineIModel);
-            } else {
-                const info = await this.getIModelInfo();
-                imodel = await IModelConnection.open(info.projectId, info.imodelId, OpenMode.Readonly);
-            }
-        } catch (e) {
-            console.log(e);
-            alert(e.message);
-        }
-        await this.onIModelSelected(imodel);
+  private _onClick = async () => {
+    this.setState({ isLoading: true });
+    let imodel: IModelConnection | undefined;
+    try {
+      // attempt to open the imodel
+      if (this.props.offlineIModel) {
+        const offlineIModel = Config.App.getString("imjs_offline_imodel");
+        imodel = await IModelConnection.openSnapshot(offlineIModel);
+      } else {
+        const info = await this.getIModelInfo();
+        imodel = await IModelConnection.open(info.projectId, info.imodelId, OpenMode.ReadWrite);
+      }
+    } catch (e) {
+      alert(e.message);
     }
+    await this.onIModelSelected(imodel);
+  }
 
     public render() {
         return (
