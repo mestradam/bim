@@ -4,7 +4,7 @@ import { AccessToken, AuthorizedClientRequestContext } from "@bentley/imodeljs-c
 import { IModelUpdateRpcInterface } from "../common/IModelUpdateRpcInterface";
 import { IModelDb } from "@bentley/imodeljs-backend";
 import * as fs from "fs";
-import * as parse from "csv-parse";
+import parse from "csv-parse";
 
 // tslint:disable:no-string-literal
 
